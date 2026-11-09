@@ -1020,6 +1020,24 @@ body.bo{overflow:hidden}
 .paymeth .pm.on{background:var(--surface-3,rgba(255,255,255,.1));box-shadow:0 10px 22px -12px rgba(0,0,0,.55);transform:translateY(-2px)}
 .paymeth .pm[hidden]{display:none}
 @media (max-width:520px){.paymeth{grid-template-columns:1fr}}
+
+/* v16 · ir a página, pantalla completa, cuenta en el menú */
+.pgjump{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--rd-sub)}
+.pgjump input{width:62px;height:34px;border-radius:10px;text-align:center;font:inherit;font-size:14px;padding:0 4px;-moz-appearance:textfield;background:var(--rd-bg2,rgba(0,0,0,.05));color:inherit;border:1px solid rgba(127,127,127,.3)}
+.pgjump input::-webkit-inner-spin-button{opacity:.6}
+.pgjump .status{white-space:nowrap}
+body > .rdbox.rd-rot{position:fixed;inset:0;z-index:300;margin:0;border-radius:0;overflow:auto;max-width:none;width:auto;height:auto}
+body > .rdbox.rd-rot.css{inset:auto;top:0;left:100vw;width:100vh;height:100vw}
+body > .rdbox.rd-rot .rdtools{position:sticky;top:0;z-index:5}
+.macct{display:flex!important;align-items:center;gap:10px;width:100%;padding:10px 12px;border-radius:16px;background:rgba(255,255,255,.06)}
+.macct[hidden]{display:none!important}
+.mav{width:30px;height:30px;border-radius:50%;background:var(--lime);color:#1b1d12;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex:none}
+.macct .pill{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;background:none;padding:0}
+.mlogout{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.mlogout svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.spgr{display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;opacity:.6;margin:8px 0 4px}
+.menu > #loginBtn{width:100%;min-height:46px;background:var(--lime);color:#151515;border:0;font-weight:600}
+#soundPop{max-height:calc(100dvh - 96px);overflow-y:auto;overscroll-behavior:contain}
 </style>
 
 <div id="sceneBg" aria-hidden="true"></div>
@@ -1035,6 +1053,7 @@ body.bo{overflow:hidden}
   <div class="menushade" id="menuShade" hidden></div>
   <aside class="menu" id="menu" aria-label="Menú">
     <div class="mhead"><b>The Eagle Life</b><button class="iconbtn mclose" aria-label="Cerrar menú"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <button class="tab" id="loginBtn" hidden>Entrar o crear cuenta</button><span id="account" hidden class="macct"><span class="mav" id="whoAv" aria-hidden="true">·</span><span class="pill" id="who">–</span><button class="tab mlogout" id="logout"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 17l5-5-5-5M15 12H3"/></svg>Cerrar sesión</button></span>
     <nav class="nav" aria-label="Páginas">
       <button class="tab tabicon" id="pgHome" data-pg="home" aria-pressed="false"><svg class="homelogo" viewBox="27 28 681 681" aria-hidden="true"><path d="M161.8,702.2C158.6,701.6 162.7,695.5 175.5,682.1C179.3,678.1 181.6,675.2 180.5,675.8C179.4,676.4 171.4,681.1 162.7,686.4C140.9,699.4 134.5,702.0 123.6,702.0C113.5,702.0 113.2,701.0 121.4,695.3C124.2,693.4 125.6,692.1 124.5,692.5C113.3,696.3 109.8,697.3 105.3,697.7C99.7,698.3 93.0,697.4 93.0,696.0C93.0,694.8 100.9,691.1 114.5,686.3C127.4,681.6 126.9,681.5 108.5,685.5C95.3,688.4 77.7,689.9 76.7,688.3C76.3,687.7 76.8,686.6 77.8,685.8C81.2,682.7 91.4,679.8 130.0,670.6C134.1,669.6 135.0,669.2 132.4,669.5C120.4,670.8 108.3,671.1 105.8,670.1C99.3,667.6 103.6,665.9 123.5,663.0C145.3,659.9 156.3,655.9 174.0,645.0C187.2,636.8 223.1,608.3 223.0,606.1C223.0,605.8 220.7,604.5 217.9,603.3C210.5,600.0 211.4,598.6 224.8,591.8C248.9,579.5 268.6,564.1 293.5,538.0C310.4,520.3 316.8,512.8 332.4,492.7C340.6,482.1 342.9,478.6 342.0,477.5C339.7,474.7 326.4,466.6 319.1,463.5C305.6,457.8 294.1,454.7 288.9,455.4C285.8,455.8 282.7,455.5 279.9,454.6C276.3,453.3 275.2,453.3 272.4,454.5C270.5,455.3 268.2,457.3 267.1,459.1L265.2,462.2L264.0,456.7C262.7,450.4 263.3,447.2 266.6,441.3C268.9,437.3 279.6,429.0 282.5,429.0C283.3,429.0 284.8,427.7 285.9,426.1C288.7,422.2 296.3,417.5 303.2,415.5C309.8,413.6 320.9,413.5 342.2,414.9C366.6,416.6 382.7,414.2 398.1,406.4L404.7,403.1L409.8,390.8C420.1,365.5 426.9,342.7 431.2,318.5C433.2,307.2 433.5,302.2 433.5,281.0C433.4,259.1 433.2,255.5 431.2,247.7C426.6,229.3 429.7,225.7 441.3,236.0C444.2,238.6 446.5,239.9 447.0,239.4C448.9,237.5 450.0,223.6 450.0,199.5C450.0,168.7 448.7,145.0 445.9,126.1C443.6,110.7 443.8,102.5 446.5,98.4C447.3,97.1 448.9,96.0 450.0,96.0C454.7,96.0 459.6,108.3 467.0,139.0C469.4,148.6 471.6,156.8 471.9,157.2C472.2,157.6 472.5,138.7 472.5,115.2C472.6,72.0 473.5,56.0 476.6,45.3C478.4,38.7 481.1,36.9 484.9,39.7C491.0,44.2 493.7,62.4 494.6,105.0C495.0,121.5 495.4,134.9 495.6,134.8C495.7,134.6 497.2,125.3 498.9,114.0C507.7,54.7 514.4,33.1 523.6,34.2C526.0,34.4 526.7,35.2 527.8,38.5C530.7,47.0 527.5,84.4 520.9,118.4C519.9,123.9 519.2,128.6 519.5,128.8C519.7,129.1 520.2,128.7 520.5,127.9C520.7,127.1 523.9,117.7 527.6,107.0C535.1,85.0 545.4,58.0 549.5,49.9C554.0,40.9 555.9,38.8 558.9,39.2C561.1,39.5 561.6,40.2 562.4,43.8C564.2,52.4 556.5,82.4 541.7,124.4C538.6,133.2 536.2,140.5 536.4,140.7C536.6,140.9 538.5,138.3 540.6,134.8C570.6,84.8 589.6,59.0 596.3,59.0C604.6,59.0 601.3,73.5 585.9,104.1C579.7,116.7 569.9,134.7 562.2,147.9C559.2,153.0 560.0,152.7 568.0,146.0C606.9,113.3 626.6,98.9 630.7,100.4C633.1,101.4 631.8,107.9 627.7,115.2C622.8,124.0 614.4,134.9 599.0,152.9C591.7,161.4 586.4,167.9 587.1,167.4C587.9,167.0 591.8,163.8 595.7,160.3C604.9,152.3 618.2,142.4 623.3,139.9C625.4,138.8 628.6,138.0 630.3,138.2C633.2,138.5 633.5,138.8 633.8,142.2C634.3,148.0 631.4,152.8 621.8,162.2C614.0,169.9 613.4,170.7 617.2,168.5C622.4,165.5 626.5,165.3 628.0,167.9C630.3,172.3 628.4,177.4 621.9,184.5L618.0,188.7L622.5,190.5C625.0,191.4 627.5,193.0 628.0,194.0C629.6,196.9 629.2,201.7 627.0,206.0L625.0,209.9L628.0,212.8C633.7,218.6 632.9,224.5 625.4,230.7L621.0,234.2L623.5,237.2C627.3,241.7 626.8,245.5 622.0,250.0L618.1,253.6L621.5,254.9C627.3,257.0 627.0,261.0 620.7,267.7L617.7,270.9L620.3,273.6C623.7,277.0 623.7,278.2 620.1,282.2C617.2,285.5 617.2,285.5 619.1,287.9C621.6,291.0 621.5,293.8 618.8,296.7L616.7,299.0L618.8,301.2C623.8,306.6 623.6,312.0 618.1,316.1C615.7,317.9 615.3,318.8 615.7,321.4C616.3,325.7 614.6,329.8 611.2,331.7C608.7,333.1 608.3,334.0 608.2,337.9C607.5,361.5 604.6,370.9 597.1,374.0C594.5,375.1 594.2,375.4 595.2,377.5C596.6,380.7 595.6,384.3 592.0,388.3C590.0,390.6 589.3,392.3 589.6,393.7C590.3,396.2 586.9,400.0 584.0,400.0C582.3,400.0 582.0,400.7 582.0,404.6C582.0,410.0 579.5,414.1 575.0,416.0C572.4,417.1 572.0,417.8 572.0,421.0C572.0,424.8 570.4,427.0 566.5,428.5C562.2,430.1 567.3,430.1 574.8,428.5C584.7,426.3 594.5,422.7 609.5,415.7C616.1,412.6 623.4,409.8 625.8,409.5C629.6,409.1 630.5,409.3 633.1,411.9C637.2,416.1 636.8,418.6 631.2,423.8C628.6,426.3 627.4,428.0 628.5,427.5C629.6,427.1 632.8,426.5 635.7,426.3C640.3,425.8 641.2,426.1 643.4,428.3C648.6,433.5 645.7,438.2 633.4,444.1C628.7,446.4 625.0,448.4 625.2,448.6C625.4,448.8 629.6,447.8 634.5,446.5C639.5,445.1 645.1,444.0 647.2,444.0C654.5,444.0 656.3,450.3 650.9,456.5C649.1,458.5 647.9,460.2 648.1,460.4C648.3,460.6 650.0,461.5 651.7,462.4C659.2,466.2 660.0,473.0 653.5,476.7C651.3,478.0 648.5,479.0 647.3,479.0C646.1,479.0 644.8,479.4 644.5,480.0C644.1,480.6 645.7,481.0 648.5,481.0C653.8,481.0 656.5,482.2 658.0,485.1C660.5,489.6 653.9,494.0 644.7,494.0C639.9,494.0 640.6,495.5 645.8,496.3C651.4,497.2 654.2,500.7 653.8,506.0C653.4,511.7 650.5,513.8 641.0,515.2L633.6,516.3L638.5,517.5C641.2,518.2 644.2,519.8 645.2,521.0C647.2,523.4 647.6,528.1 646.0,531.0C644.5,533.7 638.6,535.3 632.6,534.6L627.5,534.0L631.4,536.2C637.1,539.5 637.9,541.3 635.4,544.7C634.2,546.2 632.2,548.1 630.9,548.7C627.1,550.7 617.9,550.2 608.6,547.5C603.9,546.1 599.7,545.0 599.4,545.0C599.0,545.0 601.5,546.8 604.9,549.1C619.5,558.8 619.6,569.1 605.2,572.1C602.1,572.7 596.9,573.0 593.8,572.6C588.5,572.1 588.0,572.2 588.0,574.0C588.0,575.1 587.3,577.8 586.4,580.0C584.5,584.8 580.9,587.0 575.0,587.0C571.6,587.0 570.4,587.6 567.7,590.6C559.5,600.0 550.3,597.9 541.8,584.8L538.5,579.7L538.0,586.6C537.3,596.1 534.7,600.0 529.2,600.0C526.1,600.0 521.1,594.1 517.1,586.0C514.2,580.0 513.4,579.0 513.2,581.0C512.3,589.9 511.6,592.3 509.4,595.0C507.5,597.2 506.0,598.0 503.6,598.0C499.1,598.0 497.1,595.4 493.8,585.7C492.3,581.2 491.1,578.5 491.1,579.7C490.9,585.0 488.6,592.5 486.4,594.7C483.2,597.9 477.2,597.9 473.2,594.5C469.5,591.4 468.1,586.5 467.1,571.9C466.3,561.3 465.0,556.0 463.2,556.0C462.8,556.0 461.6,557.7 460.5,559.7C458.0,564.4 452.7,568.0 448.4,568.0C446.5,568.0 445.0,568.4 445.0,568.9C445.0,569.4 443.8,571.2 442.4,572.9C440.5,575.2 439.0,576.0 436.6,576.0C433.6,576.0 433.2,576.4 431.9,580.7C430.3,585.9 425.6,590.0 421.5,590.0C419.7,590.0 419.1,590.7 418.6,593.5C417.8,597.5 414.2,600.7 409.4,601.6C406.6,602.1 405.6,603.0 404.4,605.9C401.4,613.1 395.6,617.0 388.0,617.0C385.0,617.0 384.0,617.4 384.0,618.6C384.0,619.5 382.5,621.7 380.6,623.6C377.7,626.5 376.5,627.0 372.5,627.0C368.2,627.0 367.4,627.4 363.9,631.4C358.3,637.7 352.4,639.4 345.8,636.6C344.5,636.0 343.7,636.8 342.2,640.2C338.7,648.0 334.1,650.6 327.0,648.7C324.8,648.1 323.9,648.8 320.2,653.5C317.8,656.6 314.8,659.7 313.5,660.6C309.7,663.1 304.5,662.8 301.4,659.9C298.9,657.6 298.7,657.6 297.6,659.4C286.3,677.9 276.3,682.6 271.2,671.7L269.3,667.7L263.7,674.7C255.3,685.3 247.6,691.0 241.7,691.0C238.0,691.0 236.6,688.5 236.5,681.9C236.5,678.7 236.2,676.0 235.9,676.0C235.5,676.0 233.8,677.7 232.0,679.8C219.8,694.0 209.6,702.0 203.6,702.0C200.8,702.0 200.8,702.0 201.2,696.8C201.5,693.7 203.4,687.6 205.7,682.2C208.0,677.2 209.6,673.0 209.4,673.0C209.2,673.0 206.6,675.0 203.6,677.4C193.7,685.5 177.8,697.1 173.6,699.2C169.0,701.6 164.3,702.8 161.8,702.2Z"/></svg>Inicio</button>
       <button class="tab" id="pgTools" data-pg="tools" aria-pressed="false">Herramientas</button>
@@ -1052,7 +1071,6 @@ body.bo{overflow:hidden}
     <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
       <span class="status" id="status">Cargando…</span>
       <button class="thbtn" id="themeBtn" aria-label="Cambiar fondo: claro u oscuro" title="Cambiar fondo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/></svg></button>
-      <button class="tab" id="loginBtn" hidden>Entrar</button><span id="account" hidden style="display:inline-flex;gap:8px;align-items:center"><span class="pill" id="who">–</span><button class="tab" id="logout">Salir</button></span>
     </div>
   </aside>
 
@@ -1231,7 +1249,7 @@ body.bo{overflow:hidden}
       <div class="booknav">
         <button class="tab" id="bookBack">← Biblioteca</button>
         <b id="bookTitle" class="booktitle"></b>
-        <div class="stepper"><button class="ib" id="bookPrev" aria-label="Página anterior">‹</button><span id="bookPage" class="status"></span><button class="ib" id="bookNext" aria-label="Página siguiente">›</button></div>
+        <div class="stepper"><button class="ib" id="bookPrev" aria-label="Página anterior">‹</button><label class="pgjump" for="bookPgIn"><span>Página</span><input id="bookPgIn" type="number" inputmode="numeric" min="1" aria-label="Ir a la página"><span id="bookPage" class="status"></span></label><button class="ib" id="bookNext" aria-label="Página siguiente">›</button></div>
       </div>
       <div id="bookBody"></div>
     </div>
@@ -2325,6 +2343,7 @@ const IC={
   hl:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l-6 6v3h9l3-3"/><path d="M22 12l-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4"/></svg>',
   note:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>',
   search:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>',
+  full:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>',
   rot:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="3" width="12" height="18" rx="2" transform="rotate(90 12 12)"/><path d="M3 7a9 9 0 0 1 9-4"/><path d="M12 1l1 2-2 1"/></svg>'};
 const boxOf=kind=>document.getElementById(kind==="bible"?"bibBox":"bookBox");
 const unitWord=kind=>kind==="bible"?"versículo":"párrafo";
@@ -2337,7 +2356,7 @@ function toolsHTML(kind){
   '<button class="rbtn" data-rtool="ink" aria-pressed="'+(RD.tool==="ink")+'">'+IC_INK.draw+'Dibujar</button>'+
   '<button class="rbtn" data-rtool="note" aria-pressed="'+(RD.tool==="note")+'">'+IC.note+'Nota</button>'+
   '<button class="rbtn" data-rsearch aria-pressed="'+!!RD.search[kind]+'">'+IC.search+'Buscar</button>'+
-  '<button class="rbtn" data-rrot aria-pressed="'+!!RD.rot+'">'+IC.rot+(RD.rot?'Salir':'Girar')+'</button>'+
+  '<button class="rbtn" data-rrot aria-pressed="'+!!RD.rot+'">'+(RD_TOUCH()?IC.rot:IC.full)+(RD.rot?(RD_TOUCH()?'Volver a vertical':'Salir de pantalla completa'):(RD_TOUCH()?'Girar':'Pantalla completa'))+'</button>'+
   (RD.tool==="ink"?inkBarHTML():RD.tool==="note"?'<span class="status">Toca un '+unitWord(kind)+' para escribir tu nota al margen.</span>':'')}
 function applyRD(kind){const b=boxOf(kind);if(!b)return;if(RD.tool==="hl")RD.tool="none";b.dataset.theme=RD.theme;b.dataset.font=RD.font;b.dataset.tool=RD.tool;b.style.setProperty("--rd-bri",RD.bri/100);b.style.setProperty("--rd-size",RD.size+"px");
   b.querySelector(".rdtools").innerHTML=toolsHTML(kind);b.classList.toggle("wide",b.clientWidth>=760);requestAnimationFrame(()=>redrawInk(kind))}
@@ -2350,15 +2369,19 @@ function marginHTML(kind,keys,ann,label){const ns=keys.filter(k=>ann.nt&&ann.nt[
   return'<aside class="rdmargin" aria-label="Notas al margen"><span class="lbl">Notas al margen</span>'+(ns.length?ns.map(k=>'<button class="mnote" data-nopen="'+k+'"><b>'+esc(label(k))+'</b>'+esc(ann.nt[k])+'</button>').join(''):'<span class="note" style="text-align:left">Usa ✎ Nota y toca un '+unitWord(kind)+'.</span>')+'</aside>'}
 function rerender(kind){if(kind==="bible"){if(page==="bible")renderBible()}else if(BK.cur)renderBookPage()}
 function focusNote(kind){setTimeout(()=>{const t=boxOf(kind).querySelector("textarea[data-nk]");if(t){t.focus();t.scrollIntoView({block:"center"})}},30)}
+const RD_TOUCH=()=>matchMedia("(pointer:coarse)").matches;
+function rdPortal(b,on){if(on){if(b.__ph)return;const ph=document.createComment("lector");b.parentNode.insertBefore(ph,b);b.__ph=ph;document.body.appendChild(b)}
+  else if(b.__ph){b.__ph.parentNode.insertBefore(b,b.__ph);b.__ph.remove();b.__ph=null}}
 async function toggleRotate(kind){const b=boxOf(kind);
-  if(RD.rot){b.classList.remove("rd-rot","css");document.body.classList.remove("rd-open");const was=RD.rot;RD.rot=null;RD.rotKind=null;
+  if(RD.rot){b.classList.remove("rd-rot","css");rdPortal(b,false);document.body.classList.remove("rd-open");const was=RD.rot;RD.rot=null;RD.rotKind=null;
     if(was==="native"){try{screen.orientation.unlock()}catch(e){}try{if(document.fullscreenElement)await document.exitFullscreen()}catch(e){}}
     applyRD(kind);rerender(kind);return}
-  RD.rot="css";RD.rotKind=kind;b.classList.add("rd-rot");document.body.classList.add("rd-open");
-  try{if(b.requestFullscreen&&screen.orientation&&screen.orientation.lock){await b.requestFullscreen();await screen.orientation.lock("landscape");RD.rot="native"}}
-  catch(e){try{if(document.fullscreenElement)await document.exitFullscreen()}catch(_){}}
-  if(RD.rot==="css"&&window.innerHeight>window.innerWidth)b.classList.add("css");
+  RD.rot="css";RD.rotKind=kind;rdPortal(b,true);b.classList.add("rd-rot");document.body.classList.add("rd-open");
+  if(RD_TOUCH()){try{if(b.requestFullscreen&&screen.orientation&&screen.orientation.lock){await b.requestFullscreen();await screen.orientation.lock("landscape");RD.rot="native"}}
+    catch(e){try{if(document.fullscreenElement)await document.exitFullscreen()}catch(_){}}}
+  if(RD.rot==="css"&&RD_TOUCH()&&window.innerHeight>window.innerWidth)b.classList.add("css");
   b.scrollTop=0;applyRD(kind);rerender(kind)}
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&RD.rot&&RD.rotKind)toggleRotate(RD.rotKind)});
 document.addEventListener("fullscreenchange",()=>{if(!document.fullscreenElement&&RD.rot==="native"&&RD.rotKind)toggleRotate(RD.rotKind)});
 window.addEventListener("resize",()=>{["bible","book"].forEach(k=>{const b=boxOf(k);if(b&&!b.hidden&&b.offsetParent!==null){const w=b.clientWidth>=760;if(w!==b.classList.contains("wide")){b.classList.toggle("wide",w)}}})});
 document.addEventListener("input",e=>{if(e.target.matches("[data-rbri]")){RD.bri=+e.target.value;saveRD();const b=e.target.closest(".rdbox");b.style.setProperty("--rd-bri",RD.bri/100)}});
@@ -2441,8 +2464,34 @@ function inkKey(kind){return kind==="bible"?bib.b+"."+bib.c:"p"+BK.page}
 function inkArticle(kind){return boxOf(kind).querySelector(".rdwrap article")}
 function strokesOf(kind){const ann=getDoc(annPath(kind));ann.ink=ann.ink||{};return ann.ink[inkKey(kind)]||(ann.ink[inkKey(kind)]=[])}
 function unitBox(art,k){const el=art.querySelector('.u[data-k="'+k+'"]');return el?{x:el.offsetLeft,y:el.offsetTop,w:el.offsetWidth||1}:null}
-function toArt(art,s){const b=unitBox(art,s.k);if(!b)return null;return s.p.map(([u,v])=>[b.x+u*b.w,b.y+v*b.w])}
-function drawStroke(ctx,pts,s){if(!pts||!pts.length)return;const T=INK_TOOLS[s.t]||INK_TOOLS.pen;
+function toArt(art,s){if(s.a)return anchToArt(art,s);const b=unitBox(art,s.k);if(!b)return null;return s.p.map(([u,v])=>[b.x+u*b.w,b.y+v*b.w])}
+/* Cada punto del trazo se ancla a un carácter del párrafo: si el texto se reacomoda (girar, letra más grande, otra pantalla),
+   el trazo viaja con sus palabras. a=[[índice, dx/em, dy/em],…] relativo a la esquina del carácter. */
+function inkCanvasOf(art){return art.querySelector("canvas.ink")}
+function clientToArt(art,cx,cy){const cv=inkCanvasOf(art),r=cv.getBoundingClientRect(),rot=art.closest(".rdbox").classList.contains("css");
+  if(rot)return[cy-r.top,r.width-(cx-r.left)];const sx=cv.offsetWidth/r.width||1,sy=cv.offsetHeight/r.height||1;return[(cx-r.left)*sx,(cy-r.top)*sy]}
+function textNodesOf(el){const out=[],w=document.createTreeWalker(el,NodeFilter.SHOW_TEXT,{acceptNode:n=>n.parentElement.closest(".nmark")?NodeFilter.FILTER_REJECT:NodeFilter.FILTER_ACCEPT});let n;while(n=w.nextNode())out.push(n);return out}
+function charRectArt(art,el,i){const ns=textNodesOf(el);let acc=0;for(const n of ns){const L=n.nodeValue.length;if(i<acc+L||n===ns[ns.length-1]){const o=Math.max(0,Math.min(L-1,i-acc));if(L<1)return null;
+      const rg=document.createRange();rg.setStart(n,o);rg.setEnd(n,o+1);const rs=[...rg.getClientRects()].filter(r=>r.width||r.height);const r=rs[0]||rg.getBoundingClientRect();if(!r||(!r.width&&!r.height))return null;
+      const rot=art.closest(".rdbox").classList.contains("css");return clientToArt(art,rot?r.right:r.left,r.top)}acc+=L}return null}
+function charIndexAt(el,cx,cy){let node=null,off=0;
+  if(document.caretPositionFromPoint){const c=document.caretPositionFromPoint(cx,cy);if(c){node=c.offsetNode;off=c.offset}}
+  else if(document.caretRangeFromPoint){const c=document.caretRangeFromPoint(cx,cy);if(c){node=c.startContainer;off=c.startOffset}}
+  const ns=textNodesOf(el);if(!ns.length)return -1;let acc=0;
+  for(const n of ns){if(n===node)return Math.min(acc+Math.max(0,off-(off>0&&off>=n.nodeValue.length?1:0)),acc+n.nodeValue.length-1);acc+=n.nodeValue.length}
+  // fuera del texto: el carácter más cercano por distancia
+  let best=0,bd=1e12,i=0;for(const n of ns){for(let o=0;o<n.nodeValue.length;o+=3){const rg=document.createRange();rg.setStart(n,o);rg.setEnd(n,o+1);const r=rg.getBoundingClientRect();const d=Math.hypot(r.left+r.width/2-cx,r.top+r.height/2-cy);if(d<bd){bd=d;best=i+o}}i+=n.nodeValue.length}return best}
+function emOf(el){return parseFloat(getComputedStyle(el).fontSize)||18}
+function anchToArt(art,s){const el=art.querySelector('.u[data-k="'+s.k+'"]');if(!el)return null;const em=emOf(el),cache={};
+  return s.a.map(([i,dx,dy])=>{const c=cache[i]||(cache[i]=charRectArt(art,el,i));return c?[c[0]+dx*em,c[1]+dy*em]:null}).filter(Boolean)}
+function anchorPts(art,el,pts){const em=emOf(el),cache={};
+  return pts.map(([x,y,cx,cy])=>{const i=charIndexAt(el,cx,cy);if(i<0)return null;const c=cache[i]||(cache[i]=charRectArt(art,el,i));if(!c)return null;
+    return[i,+((x-c[0])/em).toFixed(3),+((y-c[1])/em).toFixed(3)]}).filter(Boolean)}
+function drawStroke(ctx,pts,s){if(!pts||!pts.length)return;
+  if(s.a&&pts.length>1){const lim=Math.max(36,(RD.size||18)*2.6);let seg=[pts[0]];const segs=[];for(let i=1;i<pts.length;i++){if(Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1])>lim){segs.push(seg);seg=[]}seg.push(pts[i])}segs.push(seg);
+    if(segs.length>1){segs.forEach(g=>drawStroke1(ctx,g,s));return}}
+  drawStroke1(ctx,pts,s)}
+function drawStroke1(ctx,pts,s){if(!pts||!pts.length)return;const T=INK_TOOLS[s.t]||INK_TOOLS.pen;
   ctx.save();ctx.globalAlpha=T.a;ctx.strokeStyle=s.c;ctx.lineWidth=s.w;ctx.lineCap=s.t==="marker"?"butt":"round";ctx.lineJoin="round";
   ctx.beginPath();ctx.moveTo(pts[0][0],pts[0][1]);if(pts.length===1)ctx.lineTo(pts[0][0]+.1,pts[0][1]);
   for(let i=1;i<pts.length-1;i++){const mx=(pts[i][0]+pts[i+1][0])/2,my=(pts[i][1]+pts[i+1][1])/2;ctx.quadraticCurveTo(pts[i][0],pts[i][1],mx,my)}
@@ -2467,13 +2516,15 @@ function setupInk(kind){const art=inkArticle(kind);if(!art)return;art.classList.
     if(keep.length!==arr.length){if(!changed)pushHist(inkKey(kind),arr);changed=true;getDoc(annPath(kind)).ink[inkKey(kind)]=keep;redrawInk(kind)}};
   cv.onpointerdown=e=>{if(RD.tool!=="ink")return;e.preventDefault();cv.setPointerCapture(e.pointerId);const [x,y]=pos(e);changed=false;
     if(RD.ink.tool==="eraser"){erasing=true;eraseAt(x,y);return}
-    const el=nearestUnit(art,y);if(!el)return;live={k:el.dataset.k,t:RD.ink.tool,c:RD.ink.color,w:+RD.ink.w[RD.ink.tool]||3,pts:[[x,y]]};redrawInk(kind,live)};
+    const el=nearestUnit(art,y);if(!el)return;live={k:el.dataset.k,t:RD.ink.tool,c:RD.ink.color,w:+RD.ink.w[RD.ink.tool]||3,pts:[[x,y]],cl:[[e.clientX,e.clientY]]};redrawInk(kind,live)};
   cv.onpointermove=e=>{if(RD.tool!=="ink")return;const [x,y]=pos(e);
     if(erasing){eraseAt(x,y);return}
-    if(!live)return;const l=live.pts[live.pts.length-1];if(Math.hypot(l[0]-x,l[1]-y)<1.5)return;live.pts.push([x,y]);redrawInk(kind,live)};
+    if(!live)return;const l=live.pts[live.pts.length-1];if(Math.hypot(l[0]-x,l[1]-y)<1.5)return;live.pts.push([x,y]);live.cl.push([e.clientX,e.clientY]);redrawInk(kind,live)};
   const end=()=>{if(erasing){erasing=false;if(changed)savePlan(annPath(kind));return}
     if(!live)return;const b=unitBox(art,live.k);if(b){const arr=strokesOf(kind);pushHist(inkKey(kind),arr);
-      arr.push({k:live.k,t:live.t,c:live.c,w:live.w,p:live.pts.map(([x,y])=>[+((x-b.x)/b.w).toFixed(4),+((y-b.y)/b.w).toFixed(4)])});savePlan(annPath(kind))}
+      const el=art.querySelector('.u[data-k="'+live.k+'"]');let a=null;try{a=anchorPts(art,el,live.pts.map((q,i)=>[q[0],q[1],live.cl[i][0],live.cl[i][1]]))}catch(err){a=null}
+      const st={k:live.k,t:live.t,c:live.c,w:live.w};if(a&&a.length===live.pts.length)st.a=a;else st.p=live.pts.map(([x,y])=>[+((x-b.x)/b.w).toFixed(4),+((y-b.y)/b.w).toFixed(4)]);
+      arr.push(st);savePlan(annPath(kind))}
     live=null;redrawInk(kind)};
   cv.onpointerup=end;cv.onpointercancel=end}
 document.addEventListener("click",e=>{const box=e.target.closest(".rdbox");if(!box)return;const kind=box.dataset.kind,t=e.target.closest("button");if(!t)return;const d=t.dataset,I=RD.ink,ck=inkKey(kind);
@@ -2489,7 +2540,8 @@ document.addEventListener("input",e=>{const box=e.target.closest(".rdbox");if(!b
   if(e.target.matches("[data-inkw]")){RD.ink.w[RD.ink.tool]=+e.target.value;saveInkPrefs();document.querySelectorAll('.pen[data-inkt="'+RD.ink.tool+'"] text').forEach(t=>t.textContent=String(Math.max(1,Math.round(+e.target.value))).padStart(2,"0"))}
   else if(e.target.matches("[data-inkcustom]")){RD.ink.color=e.target.value;if(RD.ink.tool==="eraser")RD.ink.tool="pen";e.target.parentNode.style.background=e.target.value;saveInkPrefs()}});
 document.addEventListener("change",e=>{if(e.target.matches("[data-inkcustom]")){const box=e.target.closest(".rdbox");if(box)applyRD(box.dataset.kind)}});
-window.addEventListener("resize",()=>{["bible","book"].forEach(k=>{const b=boxOf(k);if(b&&b.offsetParent!==null)redrawInk(k)})});
+window.addEventListener("resize",()=>{["bible","book"].forEach(k=>{const b=boxOf(k);if(b&&b.offsetParent!==null){redrawInk(k);setTimeout(()=>redrawInk(k),350)}})});
+if(screen.orientation)screen.orientation.addEventListener("change",()=>setTimeout(()=>["bible","book"].forEach(k=>{const b=boxOf(k);if(b&&b.offsetParent!==null)redrawInk(k)}),400));
 function markText(text,q){if(!q)return esc(text);const f=fold(text);let h="",at=0,i;while(q&&(i=f.indexOf(q,at))>=0){h+=esc(text.slice(at,i))+'<mark>'+esc(text.slice(i,i+q.length))+'</mark>';at=i+q.length}return h+esc(text.slice(at))}
 
 /* ======================= BIBLIOTECA ======================= */
@@ -2577,9 +2629,14 @@ async function openBook(k,id,btn){
     const sr=boxOf("book").querySelector(".rdsearch");sr.hidden=true;sr.dataset.ready="";sr.innerHTML="";
     renderLib();window.scrollTo({top:0})}
   catch(e){libErr("No se pudo abrir el libro: "+esc(errMsg(e)));if(btn){btn.disabled=false;btn.textContent="Leer"}}}
+function goBookPage(n){if(!BK.cur)return;const t=Math.min(BK.cur.pages.length-1,Math.max(0,(parseInt(n,10)||1)-1));if(t===BK.page){document.getElementById("bookPgIn").value=t+1;return}
+  BK.page=t;RD.edit.book=null;saveBookPos();renderBookPage();boxOf("book").scrollIntoView({block:"start"})}
+document.getElementById("bookPgIn").addEventListener("change",e=>goBookPage(e.target.value));
+document.getElementById("bookPgIn").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();goBookPage(e.target.value);e.target.blur()}});
+document.getElementById("bookPgIn").addEventListener("focus",e=>e.target.select());
 function saveBookPos(){if(!BK.cur)return;const ap=annPath("book"),d=getDoc(ap);d.last=BK.page;savePlan(ap)}
 function renderBookPage(){if(!BK.cur)return;applyRD("book");const pages=BK.cur.pages,p=BK.page,ann=getDoc(annPath("book")),ps=pages[p]||[];
-  document.getElementById("bookTitle").textContent=BK.cur.title;document.getElementById("bookPage").textContent="Página "+(p+1)+" de "+pages.length;
+  document.getElementById("bookTitle").textContent=BK.cur.title;document.getElementById("bookPage").textContent="de "+pages.length;{const pi=document.getElementById("bookPgIn");pi.max=pages.length;if(document.activeElement!==pi)pi.value=p+1}
   document.getElementById("bookPrev").disabled=p<=0;document.getElementById("bookNext").disabled=p>=pages.length-1;
   const keys=ps.map((_,i)=>p+"."+i);
   document.getElementById("bookBody").innerHTML='<div class="rdwrap"><article class="bibtext"><div class="pagelbl">Página '+(p+1)+'</div>'+(ps.length?ps.map((t,i)=>unitHTML("book",keys[i],BK.mark?markText(t,BK.mark):linkRefs(t),ann)).join(''):'<p class="note" style="text-align:left">Esta página no tiene texto.</p>')+'</article>'+marginHTML("book",keys,ann,k=>"Pág. "+(p+1)+" · párrafo "+(+k.split(".")[1]+1))+'</div>';
@@ -3275,14 +3332,22 @@ document.getElementById("menu").addEventListener("click",e=>{if(e.target.closest
 document.addEventListener("keydown",e=>{if(e.key==="Escape"){if(document.getElementById("menu").classList.contains("open"))setMenu(false);const sp=document.getElementById("soundPop");if(!sp.hidden){sp.hidden=true;document.getElementById("musicBtn").setAttribute("aria-expanded","false")}}});
 document.getElementById("brandBtn").addEventListener("click",()=>showPage("home"));
 
-/* ---- Sonido de fondo (generado en el navegador: sin archivos ni derechos de autor) ---- */
+/* ---- Sonido de fondo: grabaciones con licencia (app/sonidos) o, si no hay, generado en el navegador ---- */
 const SOUNDS={
- calm:{n:"Calma",d:"Acordes suaves para orar y declarar"},
- rain:{n:"Lluvia suave",d:"Para reflexionar y escribir"},
- pink:{n:"Ruido rosa",d:"Lectura y estudio"},
- brown:{n:"Ruido marrón",d:"Enfoque profundo en tu bloque de trabajo"},
- white:{n:"Ruido blanco",d:"Tapa ruidos y distracciones"}};
-const SOUND_FOR={vision:"calm",welcome:"calm",home:"calm",decl:"calm",tools:"rain",coach:"rain",bible:"pink",lib:"pink",store:"pink",tracker:"brown",plan:"brown",focus:"brown",pay:"calm",admin:"pink"};
+ rain:{g:"Naturaleza",n:"Lluvia",d:"Para reflexionar y escribir"},
+ forest:{g:"Naturaleza",n:"Ambiente de bosque",d:"Aves y aire libre para orar"},
+ water:{g:"Naturaleza",n:"Agua que fluye",d:"Río tranquilo para leer"},
+ wind:{g:"Naturaleza",n:"Viento",d:"Calma amplia para planear"},
+ calm:{g:"Música",n:"Calma",d:"Acordes suaves para declarar"},
+ pink:{g:"Enfoque",n:"Ruido rosa",d:"Lectura y estudio"},
+ brown:{g:"Enfoque",n:"Ruido marrón",d:"Enfoque profundo"},
+ white:{g:"Enfoque",n:"Ruido blanco",d:"Tapa ruidos y distracciones"}};
+const SOUND_FOR={vision:"calm",welcome:"forest",home:"forest",decl:"calm",tools:"rain",coach:"rain",bible:"water",lib:"water",store:"forest",tracker:"brown",plan:"wind",focus:"brown",pay:"forest",admin:"pink"};
+/* Grabaciones reales: pon archivos .mp3 en app/sonidos/ y lístalos en app/sonidos/lista.json, por ejemplo
+   {"rain":["sonidos/lluvia-1.mp3"],"forest":["sonidos/bosque-1.mp3"],"water":[],"wind":[]}
+   Si no hay archivo (o no carga), la app genera el sonido en el navegador. Usa solo audio con licencia para apps. */
+const SND_FILES={list:null,loading:null,buf:{}};
+async function sndList(){if(SND_FILES.list)return SND_FILES.list;if(!SND_FILES.loading)SND_FILES.loading=fetch("sonidos/lista.json",{cache:"no-cache"}).then(r=>r.ok?r.json():{}).catch(()=>({})).then(j=>SND_FILES.list=j&&typeof j==="object"?j:{});return SND_FILES.loading}
 const SND={ctx:null,master:null,cur:null,nodes:null,pref:{on:false,auto:true,sound:"calm",vol:.35}};
 try{Object.assign(SND.pref,JSON.parse(localStorage.getItem("tracker90:sound")||"{}"))}catch(e){}
 window.__SND=SND;
@@ -3303,11 +3368,32 @@ function buildSound(name){const c=SND.ctx,out=c.createGain();out.gain.value=0;ou
     hp.type="highpass";hp.frequency.value=500;lp.type="lowpass";lp.frequency.value=5200;g.gain.value=.9;lfo.frequency.value=.13;lg.gain.value=.18;lfo.connect(lg);lg.connect(g.gain);lfo.start();stop.push(lfo);
     s.connect(hp);hp.connect(lp);lp.connect(g);g.connect(out);
     const b=loop("brown"),bl=c.createBiquadFilter(),bg=c.createGain();bl.type="lowpass";bl.frequency.value=300;bg.gain.value=.5;b.connect(bl);bl.connect(bg);bg.connect(out)}
+  if(name==="wind"){const s=loop("pink"),bp=c.createBiquadFilter(),g=c.createGain(),l1=c.createOscillator(),l1g=c.createGain(),l2=c.createOscillator(),l2g=c.createGain();
+    bp.type="bandpass";bp.frequency.value=520;bp.Q.value=.7;l1.frequency.value=.07;l1g.gain.value=260;l1.connect(l1g);l1g.connect(bp.frequency);
+    g.gain.value=.75;l2.frequency.value=.11;l2g.gain.value=.4;l2.connect(l2g);l2g.connect(g.gain);l1.start();l2.start();stop.push(l1,l2);s.connect(bp);bp.connect(g);g.connect(out);
+    const b=loop("brown"),bl=c.createBiquadFilter();bl.type="lowpass";bl.frequency.value=220;b.connect(bl);bl.connect(out)}
+  if(name==="water"){const s=loop("white"),bp=c.createBiquadFilter(),g=c.createGain(),l=c.createOscillator(),lg=c.createGain();
+    bp.type="bandpass";bp.frequency.value=1400;bp.Q.value=.9;l.frequency.value=1.7;lg.gain.value=500;l.connect(lg);lg.connect(bp.frequency);g.gain.value=1.4;l.start();stop.push(l);s.connect(bp);bp.connect(g);g.connect(out);
+    const s2=loop("pink"),lp=c.createBiquadFilter(),g2=c.createGain();lp.type="lowpass";lp.frequency.value=700;g2.gain.value=.55;s2.connect(lp);lp.connect(g2);g2.connect(out)}
+  if(name==="forest"){const s=loop("pink"),lp=c.createBiquadFilter(),g=c.createGain();lp.type="lowpass";lp.frequency.value=1800;g.gain.value=.35;s.connect(lp);lp.connect(g);g.connect(out);
+    let alive=true;stop.push({stop(){alive=false}});
+    const chirp=()=>{if(!alive)return;const t=c.currentTime+.05,o=c.createOscillator(),e=c.createGain(),n=2+Math.floor(Math.random()*3),f=2600+Math.random()*1800;
+      o.type="sine";e.gain.value=0;o.connect(e);e.connect(out);
+      for(let i=0;i<n;i++){const a=t+i*.13;o.frequency.setValueAtTime(f,a);o.frequency.exponentialRampToValueAtTime(f*(1.25+Math.random()*.3),a+.08);e.gain.setValueAtTime(0,a);e.gain.linearRampToValueAtTime(.05,a+.02);e.gain.linearRampToValueAtTime(0,a+.1)}
+      o.start(t);o.stop(t+n*.13+.1);setTimeout(chirp,2500+Math.random()*6000)};setTimeout(chirp,1200)}
   if(name==="calm"){const lp=c.createBiquadFilter();lp.type="lowpass";lp.frequency.value=900;lp.connect(out);
     [[110,.20],[164.81,.14],[220,.10],[277.18,.07],[329.63,.05]].forEach(([f,v],i)=>{const o=c.createOscillator(),g=c.createGain(),l=c.createOscillator(),lg=c.createGain();
       o.type=i%2?"triangle":"sine";o.frequency.value=f;o.detune.value=(i-2)*3;g.gain.value=v;l.frequency.value=.05+i*.031;lg.gain.value=v*.6;l.connect(lg);lg.connect(g.gain);o.connect(g);g.connect(lp);o.start();l.start();stop.push(o,l)});
     const s=loop("pink"),nl=c.createBiquadFilter(),ng=c.createGain();nl.type="lowpass";nl.frequency.value=600;ng.gain.value=.25;s.connect(nl);nl.connect(ng);ng.connect(out)}
   return{out,stop}}
+function buildSoundAny(name){const c=SND.ctx,n=buildSound(name);
+  // si hay una grabación para este sonido, la mezcla reemplaza al sonido generado
+  sndList().then(async L=>{const arr=(L&&L[name])||[];if(!arr.length||SND.nodes!==n)return;const url=arr[Math.floor(Math.random()*arr.length)];
+    try{const buf=SND_FILES.buf[url]||(SND_FILES.buf[url]=await fetch(url).then(r=>{if(!r.ok)throw 0;return r.arrayBuffer()}).then(a=>c.decodeAudioData(a)));
+      if(SND.nodes!==n)return;const gen=n.stop.slice();const src=c.createBufferSource(),g=c.createGain();src.buffer=buf;src.loop=true;g.gain.value=0;src.connect(g);g.connect(n.out);src.start();
+      g.gain.setTargetAtTime(1,c.currentTime,1.2);n.stop.push(src);n.real=true;
+      setTimeout(()=>gen.forEach(x=>{try{x.stop()}catch(e){}}),2500);renderSoundUI()}catch(e){}})
+  return n}
 function soundTarget(){return SND.pref.auto?(FOCUS.on?"focus":SOUND_FOR[page]||"calm"):SND.pref.sound}
 function applySound(){if(!SND.pref.on){if(SND.nodes){const n=SND.nodes;SND.nodes=null;SND.cur=null;fadeOut(n)}renderSoundUI();return}
   const want=SOUND_FOR[soundTarget()]||soundTarget();const name=SOUNDS[want]?want:"calm";
@@ -3316,13 +3402,13 @@ function applySound(){if(!SND.pref.on){if(SND.nodes){const n=SND.nodes;SND.nodes
   SND.master.gain.setTargetAtTime(SND.pref.vol*.8,SND.ctx.currentTime,.1);
   if(SND.cur===name&&SND.nodes){renderSoundUI();return}
   if(SND.nodes)fadeOut(SND.nodes);
-  const n=buildSound(name);n.out.gain.setTargetAtTime(1,SND.ctx.currentTime,.9);SND.nodes=n;SND.cur=name;renderSoundUI()}
+  const n=buildSoundAny(name);SND.nodes=n;n.out.gain.setTargetAtTime(1,SND.ctx.currentTime,.9);SND.nodes=n;SND.cur=name;renderSoundUI()}
 function fadeOut(n){const t=SND.ctx.currentTime;n.out.gain.cancelScheduledValues(t);n.out.gain.setTargetAtTime(0,t,.6);setTimeout(()=>{n.stop.forEach(s=>{try{s.stop()}catch(e){}});try{n.out.disconnect()}catch(e){}},3500)}
 function renderSoundUI(){const b=document.getElementById("musicBtn");b.setAttribute("aria-pressed",String(!!SND.pref.on));b.title=SND.pref.on?"Sonido: "+(SOUNDS[SND.cur]||{}).n:"Sonido de fondo";
   const p=document.getElementById("soundPop");if(p.hidden)return;
   p.innerHTML='<div class="sphead"><b>Sonido de fondo</b><button class="sw" id="sndOn" role="switch" aria-checked="'+!!SND.pref.on+'"><i></i></button></div>'+
     '<label class="check"><input type="checkbox" id="sndAuto"'+(SND.pref.auto?' checked':'')+'> Elegir según la actividad</label>'+
-    '<div class="splist">'+Object.entries(SOUNDS).map(([k,s])=>'<button class="spitem" data-snd="'+k+'" aria-pressed="'+(SND.pref.on&&SND.cur===k)+'"><b>'+s.n+'</b><span>'+s.d+'</span></button>').join('')+'</div>'+
+    ["Naturaleza","Música","Enfoque"].map(gr=>'<span class="spgr">'+gr+'</span><div class="splist">'+Object.entries(SOUNDS).filter(([,s])=>s.g===gr).map(([k,s])=>'<button class="spitem" data-snd="'+k+'" aria-pressed="'+(SND.pref.on&&SND.cur===k)+'"><b>'+s.n+'</b><span>'+s.d+'</span></button>').join('')+'</div>').join('')+
     '<label class="lbl">Volumen<input type="range" id="sndVol" min="0" max="1" step=".05" value="'+SND.pref.vol+'"></label>'+
     '<p class="note" style="text-align:left;margin:0">Usa audífonos para un mejor efecto. El ruido marrón ayuda a muchas personas a concentrarse; si te distrae, prueba otro o bájale el volumen.</p>'}
 document.getElementById("musicBtn").addEventListener("click",()=>{const p=document.getElementById("soundPop");p.hidden=!p.hidden;document.getElementById("musicBtn").setAttribute("aria-expanded",String(!p.hidden));renderSoundUI()});
@@ -3894,7 +3980,8 @@ document.getElementById("auForm").addEventListener("submit",async e=>{
   }catch(err){authMsg(err.message||"No se pudo completar. Intenta de nuevo.")}
   finally{btn.disabled=false}
 });
-document.getElementById("logout").addEventListener("click",async()=>{await sb.auth.signOut();location.reload()});
+document.getElementById("logout").addEventListener("click",async()=>{if(!confirmLogout())return;await sb.auth.signOut();location.reload()});
+function confirmLogout(){const b=document.getElementById("logout");if(b.dataset.sure){return true}b.dataset.sure="1";b.lastChild.textContent="Toca otra vez para salir";setTimeout(()=>{delete b.dataset.sure;b.lastChild.textContent="Cerrar sesión"},3500);return false}
 
 /* ======================= BOOT ======================= */
 {let s=null;try{s=JSON.parse(localStorage.getItem("tracker90")||"null")}catch(e){}
@@ -3912,7 +3999,7 @@ async function boot(){
       if(wasGuest){Object.keys(unsubs).forEach(k=>delete unsubs[k]);await migrateLocal(user.id);Object.keys(docs).forEach(k=>delete docs[k]);syncActs()}
       else await migrateLocal(user.id);
       const {data:prof}=await sb.from("profiles").select("username").eq("id",user.id).maybeSingle();
-      document.getElementById("who").textContent=(prof&&prof.username)||user.email;document.getElementById("account").hidden=false;
+      document.getElementById("who").textContent=(prof&&prof.username)||user.email;document.getElementById("account").hidden=false;{const nm=(prof&&prof.username)||user.email||"";document.getElementById("whoAv").textContent=(nm.trim()[0]||"·").toUpperCase();document.getElementById("who").title=user.email||""}
       await loadPlan();
       await admCheck();
       document.getElementById("pgAdmin").hidden=!ADM.isAdm;document.getElementById("bnAdmin").hidden=!ADM.isAdm;mpReturn();
