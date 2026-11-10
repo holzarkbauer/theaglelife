@@ -1,1 +1,90 @@
-{"rain":[],"forest":[],"water":[],"wind":[]}
+{
+ "rain": [
+  {
+   "f": "sonidos/lluvia-selva.mp3",
+   "n": "Lluvia en la selva"
+  },
+  {
+   "f": "sonidos/lluvia-palmeras.mp3",
+   "n": "Lluvia sobre palmeras"
+  }
+ ],
+ "forest": [
+  {
+   "f": "sonidos/bosque-amanecer.mp3",
+   "n": "Aves al amanecer"
+  },
+  {
+   "f": "sonidos/bosque-tarde.mp3",
+   "n": "Bosque de pinos por la tarde"
+  },
+  {
+   "f": "sonidos/bosque-atardecer.mp3",
+   "n": "Zorzales al atardecer"
+  },
+  {
+   "f": "sonidos/bosque-mirlo.mp3",
+   "n": "Mirlo y aves lejanas"
+  },
+  {
+   "f": "sonidos/manglar-manana.mp3",
+   "n": "Manglar en la mañana"
+  },
+  {
+   "f": "sonidos/pradera-grillos.mp3",
+   "n": "Pradera con grillos"
+  },
+  {
+   "f": "sonidos/arboles-aves.mp3",
+   "n": "Árboles, hojas y aves"
+  }
+ ],
+ "water": [
+  {
+   "f": "sonidos/rio-sereno.mp3",
+   "n": "Río sereno"
+  },
+  {
+   "f": "sonidos/olas-suaves.mp3",
+   "n": "Olas suaves en las rocas"
+  },
+  {
+   "f": "sonidos/mar-bahia.mp3",
+   "n": "Mar en la bahía"
+  }
+ ],
+ "wind": [
+  {
+   "f": "sonidos/hojas-noche.mp3",
+   "n": "Hojas en una noche de verano"
+  },
+  {
+   "f": "sonidos/hojas-montana.mp3",
+   "n": "Hojas en la montaña"
+  },
+  {
+   "f": "sonidos/viento-arboles.mp3",
+   "n": "Viento entre los árboles"
+  },
+  {
+   "f": "sonidos/viento-invierno.mp3",
+   "n": "Viento de invierno"
+  },
+  {
+   "f": "sonidos/viento-montana.mp3",
+   "n": "Viento fuerte de montaña"
+  },
+  {
+   "f": "sonidos/viento-dunas.mp3",
+   "n": "Ráfagas en las dunas"
+  },
+  {
+   "f": "sonidos/tormenta-nieve.mp3",
+   "n": "Tormenta de nieve"
+  },
+  {
+   "f": "sonidos/tormenta-himalaya.mp3",
+   "n": "Tormenta en el Himalaya"
+  }
+ ]
+}

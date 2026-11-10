@@ -1038,6 +1038,7 @@ body > .rdbox.rd-rot .rdtools{position:sticky;top:0;z-index:5}
 .spgr{display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;opacity:.6;margin:8px 0 4px}
 .menu > #loginBtn{width:100%;min-height:46px;background:var(--lime);color:#151515;border:0;font-weight:600}
 #soundPop{max-height:calc(100dvh - 96px);overflow-y:auto;overscroll-behavior:contain}
+.spnow{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:12.5px;margin:10px 0 4px;padding:8px 10px;border-radius:12px;background:rgba(255,255,255,.06)}
 </style>
 
 <div id="sceneBg" aria-hidden="true"></div>
@@ -3347,6 +3348,7 @@ const SOUND_FOR={vision:"calm",welcome:"forest",home:"forest",decl:"calm",tools:
    {"rain":["sonidos/lluvia-1.mp3"],"forest":["sonidos/bosque-1.mp3"],"water":[],"wind":[]}
    Si no hay archivo (o no carga), la app genera el sonido en el navegador. Usa solo audio con licencia para apps. */
 const SND_FILES={list:null,loading:null,buf:{}};
+setTimeout(()=>sndList(),1500);
 async function sndList(){if(SND_FILES.list)return SND_FILES.list;if(!SND_FILES.loading)SND_FILES.loading=fetch("sonidos/lista.json",{cache:"no-cache"}).then(r=>r.ok?r.json():{}).catch(()=>({})).then(j=>SND_FILES.list=j&&typeof j==="object"?j:{});return SND_FILES.loading}
 const SND={ctx:null,master:null,cur:null,nodes:null,pref:{on:false,auto:true,sound:"calm",vol:.35}};
 try{Object.assign(SND.pref,JSON.parse(localStorage.getItem("tracker90:sound")||"{}"))}catch(e){}
@@ -3386,14 +3388,23 @@ function buildSound(name){const c=SND.ctx,out=c.createGain();out.gain.value=0;ou
       o.type=i%2?"triangle":"sine";o.frequency.value=f;o.detune.value=(i-2)*3;g.gain.value=v;l.frequency.value=.05+i*.031;lg.gain.value=v*.6;l.connect(lg);lg.connect(g.gain);o.connect(g);g.connect(lp);o.start();l.start();stop.push(o,l)});
     const s=loop("pink"),nl=c.createBiquadFilter(),ng=c.createGain();nl.type="lowpass";nl.frequency.value=600;ng.gain.value=.25;s.connect(nl);nl.connect(ng);ng.connect(out)}
   return{out,stop}}
-function buildSoundAny(name){const c=SND.ctx,n=buildSound(name);
-  // si hay una grabación para este sonido, la mezcla reemplaza al sonido generado
-  sndList().then(async L=>{const arr=(L&&L[name])||[];if(!arr.length||SND.nodes!==n)return;const url=arr[Math.floor(Math.random()*arr.length)];
-    try{const buf=SND_FILES.buf[url]||(SND_FILES.buf[url]=await fetch(url).then(r=>{if(!r.ok)throw 0;return r.arrayBuffer()}).then(a=>c.decodeAudioData(a)));
-      if(SND.nodes!==n)return;const gen=n.stop.slice();const src=c.createBufferSource(),g=c.createGain();src.buffer=buf;src.loop=true;g.gain.value=0;src.connect(g);g.connect(n.out);src.start();
-      g.gain.setTargetAtTime(1,c.currentTime,1.2);n.stop.push(src);n.real=true;
-      setTimeout(()=>gen.forEach(x=>{try{x.stop()}catch(e){}}),2500);renderSoundUI()}catch(e){}})
+function sndItems(name,L){return((L&&L[name])||[]).map(x=>typeof x==="string"?{f:x,n:""}:x).filter(x=>x&&x.f)}
+async function sndBuf(url){const c=SND.ctx;return SND_FILES.buf[url]||(SND_FILES.buf[url]=await fetch(url).then(r=>{if(!r.ok)throw 0;return r.arrayBuffer()}).then(a=>c.decodeAudioData(a)))}
+/* Reproduce una grabación en bucle sin cortes: cada vuelta empieza 3 s antes de que termine la anterior y se funden */
+function playLoop(n,buf){const c=SND.ctx,X=Math.min(3,buf.duration/4);let alive=true,cur=null;
+  const one=t=>{if(!alive||SND.nodes!==n&&!n.keep)return;const src=c.createBufferSource(),g=c.createGain();src.buffer=buf;src.connect(g);g.connect(n.out);
+    g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(1,t+X);g.gain.setValueAtTime(1,t+buf.duration-X);g.gain.linearRampToValueAtTime(0,t+buf.duration);
+    src.start(t);src.stop(t+buf.duration+.05);cur=src;const next=t+buf.duration-X;setTimeout(()=>one(next),Math.max(0,(next-c.currentTime-1)*1000))};
+  one(c.currentTime+.05);return{stop(){alive=false;try{cur&&cur.stop()}catch(e){}}}}
+function buildSoundAny(name,pick){const c=SND.ctx,has=SND_FILES.list&&sndItems(name,SND_FILES.list).length,n=buildSound(has?"_vacio":name);
+  // si hay grabaciones para este sonido, una de ellas reemplaza al sonido generado
+  sndList().then(async L=>{const arr=sndItems(name,L);if(!arr.length||SND.nodes!==n)return;
+    let k=(pick!=null?pick:((SND.pref.trk||{})[name]||0))%arr.length;const it=arr[k];
+    try{const buf=await sndBuf(it.f);if(SND.nodes!==n)return;const gen=n.stop.slice();
+      const lp=playLoop(n,buf);n.stop.push(lp);n.real=it.n||"Grabación";n.idx=k;n.count=arr.length;
+      gen.forEach(x=>{try{if(x.gain)x.gain.setTargetAtTime(0,c.currentTime,.8)}catch(e){}});setTimeout(()=>gen.forEach(x=>{try{x.stop()}catch(e){}}),2500);renderSoundUI()}catch(e){}})
   return n}
+function sndNext(){if(!SND.nodes||!SND.cur)return;const name=SND.cur,old=SND.nodes,k=(old.idx||0)+1;SND.pref.trk=Object.assign({},SND.pref.trk,{[name]:k%(old.count||1)});saveSnd();fadeOut(old);const n=buildSoundAny(name,k);SND.nodes=n;n.out.gain.setTargetAtTime(1,SND.ctx.currentTime,1.2);renderSoundUI()}
 function soundTarget(){return SND.pref.auto?(FOCUS.on?"focus":SOUND_FOR[page]||"calm"):SND.pref.sound}
 function applySound(){if(!SND.pref.on){if(SND.nodes){const n=SND.nodes;SND.nodes=null;SND.cur=null;fadeOut(n)}renderSoundUI();return}
   const want=SOUND_FOR[soundTarget()]||soundTarget();const name=SOUNDS[want]?want:"calm";
@@ -3409,11 +3420,13 @@ function renderSoundUI(){const b=document.getElementById("musicBtn");b.setAttrib
   p.innerHTML='<div class="sphead"><b>Sonido de fondo</b><button class="sw" id="sndOn" role="switch" aria-checked="'+!!SND.pref.on+'"><i></i></button></div>'+
     '<label class="check"><input type="checkbox" id="sndAuto"'+(SND.pref.auto?' checked':'')+'> Elegir según la actividad</label>'+
     ["Naturaleza","Música","Enfoque"].map(gr=>'<span class="spgr">'+gr+'</span><div class="splist">'+Object.entries(SOUNDS).filter(([,s])=>s.g===gr).map(([k,s])=>'<button class="spitem" data-snd="'+k+'" aria-pressed="'+(SND.pref.on&&SND.cur===k)+'"><b>'+s.n+'</b><span>'+s.d+'</span></button>').join('')+'</div>').join('')+
+    (SND.pref.on&&SND.nodes&&SND.nodes.real?'<div class="spnow"><span>Sonando: <b>'+esc(SND.nodes.real)+'</b></span>'+(SND.nodes.count>1?'<button class="tab" id="sndNext">Otro sonido ('+((SND.nodes.idx||0)+1)+'/'+SND.nodes.count+')</button>':'')+'</div>':'')+
     '<label class="lbl">Volumen<input type="range" id="sndVol" min="0" max="1" step=".05" value="'+SND.pref.vol+'"></label>'+
-    '<p class="note" style="text-align:left;margin:0">Usa audífonos para un mejor efecto. El ruido marrón ayuda a muchas personas a concentrarse; si te distrae, prueba otro o bájale el volumen.</p>'}
+    '<p class="note" style="text-align:left;margin:0">Usa audífonos para un mejor efecto. En Naturaleza, «Otro sonido» cambia la grabación. Si un sonido te distrae, prueba otro o bájale el volumen.</p>'}
 document.getElementById("musicBtn").addEventListener("click",()=>{const p=document.getElementById("soundPop");p.hidden=!p.hidden;document.getElementById("musicBtn").setAttribute("aria-expanded",String(!p.hidden));renderSoundUI()});
 document.getElementById("soundPop").addEventListener("click",e=>{const t=e.target.closest("button");if(!t)return;
   if(t.id==="sndOn"){SND.pref.on=!SND.pref.on;saveSnd();applySound();return}
+  if(t.id==="sndNext"){sndNext();return}
   if(t.dataset.snd){SND.pref.on=true;SND.pref.auto=false;SND.pref.sound=t.dataset.snd;saveSnd();applySound();return}});
 document.getElementById("soundPop").addEventListener("change",e=>{if(e.target.id==="sndAuto"){SND.pref.auto=e.target.checked;saveSnd();applySound()}});
 document.getElementById("soundPop").addEventListener("input",e=>{if(e.target.id==="sndVol"){SND.pref.vol=+e.target.value;saveSnd();if(SND.master)SND.master.gain.setTargetAtTime(SND.pref.vol*.8,SND.ctx.currentTime,.1)}});
