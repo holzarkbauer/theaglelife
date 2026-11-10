@@ -1,0 +1,374 @@
+[
+ {
+  "k": "montanas",
+  "n": "Montañas",
+  "items": [
+   {
+    "id": "c01",
+    "n": "Cumbres rocosas",
+    "v": "fondos/c01.mp4",
+    "p": "fondos/c01.jpg"
+   },
+   {
+    "id": "c10",
+    "n": "Picos verdes",
+    "v": "fondos/c10.mp4",
+    "p": "fondos/c10.jpg"
+   },
+   {
+    "id": "c22",
+    "n": "Valle entre montañas",
+    "v": "fondos/c22.mp4",
+    "p": "fondos/c22.jpg"
+   },
+   {
+    "id": "c29",
+    "n": "Pico nevado",
+    "v": "fondos/c29.mp4",
+    "p": "fondos/c29.jpg"
+   },
+   {
+    "id": "c39",
+    "n": "Montañas en la niebla",
+    "v": "fondos/c39.mp4",
+    "p": "fondos/c39.jpg"
+   },
+   {
+    "id": "c03",
+    "n": "Cima sobre las nubes",
+    "v": "fondos/c03.mp4",
+    "p": "fondos/c03.jpg"
+   },
+   {
+    "id": "c18",
+    "n": "Montaña al alba",
+    "v": "fondos/c18.mp4",
+    "p": "fondos/c18.jpg"
+   },
+   {
+    "id": "c40",
+    "n": "Camino entre nubes",
+    "v": "fondos/c40.mp4",
+    "p": "fondos/c40.jpg"
+   }
+  ]
+ },
+ {
+  "k": "cielos",
+  "n": "Cielos y atardeceres",
+  "items": [
+   {
+    "id": "b12",
+    "n": "Atardecer en el bosque",
+    "v": "fondos/b12.mp4",
+    "p": "fondos/b12.jpg"
+   },
+   {
+    "id": "b39",
+    "n": "Sol sobre la ciudad",
+    "v": "fondos/b39.mp4",
+    "p": "fondos/b39.jpg"
+   },
+   {
+    "id": "c05",
+    "n": "Amanecer sobre las nubes",
+    "v": "fondos/c05.mp4",
+    "p": "fondos/c05.jpg"
+   },
+   {
+    "id": "c21",
+    "n": "Atardecer en la bahía",
+    "v": "fondos/c21.mp4",
+    "p": "fondos/c21.jpg"
+   },
+   {
+    "id": "c23",
+    "n": "Sol en la nieve",
+    "v": "fondos/c23.mp4",
+    "p": "fondos/c23.jpg"
+   },
+   {
+    "id": "b11",
+    "n": "Cielo rosado en la costa",
+    "v": "fondos/b11.mp4",
+    "p": "fondos/b11.jpg"
+   },
+   {
+    "id": "c48",
+    "n": "Espiga al atardecer",
+    "v": "fondos/c48.mp4",
+    "p": "fondos/c48.jpg"
+   },
+   {
+    "id": "c15",
+    "n": "Trigo a contraluz",
+    "v": "fondos/c15.mp4",
+    "p": "fondos/c15.jpg"
+   }
+  ]
+ },
+ {
+  "k": "mar",
+  "n": "Mar y playas",
+  "items": [
+   {
+    "id": "b17",
+    "n": "La ola",
+    "v": "fondos/b17.mp4",
+    "p": "fondos/b17.jpg"
+   },
+   {
+    "id": "b36",
+    "n": "Orilla desde el cielo",
+    "v": "fondos/b36.mp4",
+    "p": "fondos/b36.jpg"
+   },
+   {
+    "id": "b44",
+    "n": "Playa al amanecer",
+    "v": "fondos/b44.mp4",
+    "p": "fondos/b44.jpg"
+   },
+   {
+    "id": "c07",
+    "n": "Mar turquesa",
+    "v": "fondos/c07.mp4",
+    "p": "fondos/c07.jpg"
+   },
+   {
+    "id": "c25",
+    "n": "Costa infinita",
+    "v": "fondos/c25.mp4",
+    "p": "fondos/c25.jpg"
+   },
+   {
+    "id": "c36",
+    "n": "Playa cristalina",
+    "v": "fondos/c36.mp4",
+    "p": "fondos/c36.jpg"
+   },
+   {
+    "id": "c42",
+    "n": "Olas en las rocas",
+    "v": "fondos/c42.mp4",
+    "p": "fondos/c42.jpg"
+   },
+   {
+    "id": "b45",
+    "n": "Mar entre rocas",
+    "v": "fondos/b45.mp4",
+    "p": "fondos/b45.jpg"
+   }
+  ]
+ },
+ {
+  "k": "agua",
+  "n": "Ríos y lagos",
+  "items": [
+   {
+    "id": "c14",
+    "n": "Río en el bosque",
+    "v": "fondos/c14.mp4",
+    "p": "fondos/c14.jpg"
+   },
+   {
+    "id": "c35",
+    "n": "Río en el valle",
+    "v": "fondos/c35.mp4",
+    "p": "fondos/c35.jpg"
+   },
+   {
+    "id": "c44",
+    "n": "Cañón con río",
+    "v": "fondos/c44.mp4",
+    "p": "fondos/c44.jpg"
+   },
+   {
+    "id": "c17",
+    "n": "Lago en calma",
+    "v": "fondos/c17.mp4",
+    "p": "fondos/c17.jpg"
+   },
+   {
+    "id": "c45",
+    "n": "Humedal verde",
+    "v": "fondos/c45.mp4",
+    "p": "fondos/c45.jpg"
+   }
+  ]
+ },
+ {
+  "k": "bosques",
+  "n": "Bosques",
+  "items": [
+   {
+    "id": "b29",
+    "n": "Bosque de secuoyas",
+    "v": "fondos/b29.mp4",
+    "p": "fondos/b29.jpg"
+   },
+   {
+    "id": "c09",
+    "n": "Bosque de otoño",
+    "v": "fondos/c09.mp4",
+    "p": "fondos/c09.jpg"
+   },
+   {
+    "id": "c16",
+    "n": "Pinos al sol",
+    "v": "fondos/c16.mp4",
+    "p": "fondos/c16.jpg"
+   },
+   {
+    "id": "c27",
+    "n": "Selva desde el cielo",
+    "v": "fondos/c27.mp4",
+    "p": "fondos/c27.jpg"
+   },
+   {
+    "id": "c38",
+    "n": "Copas de los árboles",
+    "v": "fondos/c38.mp4",
+    "p": "fondos/c38.jpg"
+   }
+  ]
+ },
+ {
+  "k": "campos",
+  "n": "Campos y valles",
+  "items": [
+   {
+    "id": "a00",
+    "n": "Arrozal entre montañas",
+    "v": "fondos/a00.mp4",
+    "p": "fondos/a00.jpg"
+   },
+   {
+    "id": "b01",
+    "n": "Campo de lavanda",
+    "v": "fondos/b01.mp4",
+    "p": "fondos/b01.jpg"
+   },
+   {
+    "id": "b46",
+    "n": "Campo sembrado",
+    "v": "fondos/b46.mp4",
+    "p": "fondos/b46.jpg"
+   },
+   {
+    "id": "c02",
+    "n": "Campos y molino",
+    "v": "fondos/c02.mp4",
+    "p": "fondos/c02.jpg"
+   },
+   {
+    "id": "c20",
+    "n": "Casa en la pradera",
+    "v": "fondos/c20.mp4",
+    "p": "fondos/c20.jpg"
+   },
+   {
+    "id": "c37",
+    "n": "Colinas verdes",
+    "v": "fondos/c37.mp4",
+    "p": "fondos/c37.jpg"
+   },
+   {
+    "id": "c41",
+    "n": "Valle y bosque",
+    "v": "fondos/c41.mp4",
+    "p": "fondos/c41.jpg"
+   },
+   {
+    "id": "c43",
+    "n": "Pueblo en el valle",
+    "v": "fondos/c43.mp4",
+    "p": "fondos/c43.jpg"
+   },
+   {
+    "id": "c30",
+    "n": "Molinos de viento",
+    "v": "fondos/c30.mp4",
+    "p": "fondos/c30.jpg"
+   },
+   {
+    "id": "c46",
+    "n": "Molinos en la niebla",
+    "v": "fondos/c46.mp4",
+    "p": "fondos/c46.jpg"
+   }
+  ]
+ },
+ {
+  "k": "detalles",
+  "n": "Detalles de la creación",
+  "items": [
+   {
+    "id": "b38",
+    "n": "Rocío en la hierba",
+    "v": "fondos/b38.mp4",
+    "p": "fondos/b38.jpg"
+   },
+   {
+    "id": "b42",
+    "n": "Sol entre ramas",
+    "v": "fondos/b42.mp4",
+    "p": "fondos/b42.jpg"
+   },
+   {
+    "id": "b43",
+    "n": "Espigas al viento",
+    "v": "fondos/b43.mp4",
+    "p": "fondos/b43.jpg"
+   },
+   {
+    "id": "c26",
+    "n": "Flores silvestres",
+    "v": "fondos/c26.mp4",
+    "p": "fondos/c26.jpg"
+   },
+   {
+    "id": "c28",
+    "n": "Gotas en las hojas",
+    "v": "fondos/c28.mp4",
+    "p": "fondos/c28.jpg"
+   },
+   {
+    "id": "c47",
+    "n": "Hierba al amanecer",
+    "v": "fondos/c47.mp4",
+    "p": "fondos/c47.jpg"
+   },
+   {
+    "id": "b41",
+    "n": "Páginas de un libro",
+    "v": "fondos/b41.mp4",
+    "p": "fondos/b41.jpg"
+   }
+  ]
+ },
+ {
+  "k": "caminos",
+  "n": "Caminos y libertad",
+  "items": [
+   {
+    "id": "c32",
+    "n": "Ruta en el desierto",
+    "v": "fondos/c32.mp4",
+    "p": "fondos/c32.jpg"
+   },
+   {
+    "id": "c12",
+    "n": "Río seco",
+    "v": "fondos/c12.mp4",
+    "p": "fondos/c12.jpg"
+   },
+   {
+    "id": "c34",
+    "n": "Caballos en libertad",
+    "v": "fondos/c34.mp4",
+    "p": "fondos/c34.jpg"
+   }
+  ]
+ }
+]

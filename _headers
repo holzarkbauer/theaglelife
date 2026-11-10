@@ -1,2 +1,4 @@
 /app/sonidos/*
   Cache-Control: public, max-age=2592000, immutable
+/app/fondos/*
+  Cache-Control: public, max-age=2592000, immutable

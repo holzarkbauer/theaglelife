@@ -1051,6 +1051,22 @@ body > .rdbox.rd-rot .rdtools{position:sticky;top:0;z-index:5}
 .sptrk .tn{font-variant-numeric:tabular-nums;opacity:.5;font-size:11px;width:18px}
 .eq{margin-left:auto;display:inline-flex;gap:2px;align-items:flex-end;height:12px}.eq i{width:3px;background:var(--lime);border-radius:2px;animation:eq 1s ease-in-out infinite}.eq i:nth-child(2){animation-delay:.2s}.eq i:nth-child(3){animation-delay:.4s}
 @keyframes eq{0%,100%{height:4px}50%{height:12px}}
+#sceneBg video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0}
+#sceneBg::after{z-index:1}
+.vfcats{display:flex;flex-direction:column;gap:8px}
+.vfcat .spitem{display:grid;grid-template-columns:44px 1fr;column-gap:12px;align-items:center;text-align:left;width:100%}
+.vfcat .spitem b,.vfcat .spitem>span:not(.vfmini){grid-column:2}
+.vfmini{grid-row:1/3;width:44px;height:44px;border-radius:12px;background-size:cover;background-position:center}
+.vfgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;padding:10px 2px 4px;animation:fadein .3s ease both}
+.vfcard{font:inherit;color:inherit;background:none;border:0;padding:0;text-align:left;cursor:pointer;display:grid;gap:6px}
+.vfthumb{position:relative;display:block;aspect-ratio:16/10;border-radius:14px;overflow:hidden;background-size:cover;background-position:center;box-shadow:0 6px 16px -10px rgba(0,0,0,.6);transition:box-shadow .25s,transform .25s}
+.vfthumb video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.vfthumb .tn{position:absolute;left:8px;top:6px;font-size:11px;font-weight:700;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.6);font-variant-numeric:tabular-nums}
+.vfcard:hover .vfthumb{transform:translateY(-2px)}
+.vfcard[aria-pressed="true"] .vfthumb{box-shadow:0 22px 34px -12px rgba(0,0,0,.9);transform:translateY(-4px) scale(1.02)}
+.vfcard[aria-pressed="true"] .vfthumb::after{content:"En uso";position:absolute;right:8px;bottom:8px;font-size:10.5px;font-weight:700;padding:3px 8px;border-radius:999px;background:var(--lime);color:#151515}
+.vfn{font-size:12.5px;line-height:1.3;opacity:.85}
+.vfcard[aria-pressed="true"] .vfn{font-weight:700;opacity:1}
 </style>
 
 <div id="sceneBg" aria-hidden="true"></div>
@@ -3567,10 +3583,21 @@ document.getElementById("viewTools").addEventListener("click",e=>{const t=e.targ
 const SCENES=[["amanecer","Amanecer en la montaña"],["lago","Lago al atardecer"],["bosque","Bosque en la niebla"],["mar","Mar en calma"],["desierto","Desierto"],["noche","Noche estrellada"],["aurora","Aurora"],["trigo","Campos de trigo"]];
 const TH={scene:"",dim:62,photo:""};
 try{Object.assign(TH,JSON.parse(localStorage.getItem("tracker90:scene")||"{}"))}catch(e){}
-function applyScene(){const r=document.documentElement,bg=document.getElementById("sceneBg");
-  if(!TH.scene){delete r.dataset.scene;bg.style.backgroundImage="";return}
-  r.dataset.scene=TH.scene;r.style.setProperty("--dim",TH.dim/100);
+/* Fondos en movimiento: clips cortos en bucle (sin sonido). Con «ahorro de datos» o «reducir movimiento» se muestra la foto fija. */
+const VF={list:null,open:null};
+async function vfList(){if(VF.list)return VF.list;try{VF.list=await fetch("fondos/lista.json",{cache:"no-cache"}).then(r=>r.ok?r.json():[])}catch(e){VF.list=[]}return VF.list}
+function vfItem(id){for(const c of VF.list||[])for(const it of c.items)if(it.id===id)return it;return null}
+function vfStill(){try{return matchMedia("(prefers-reduced-motion: reduce)").matches||(navigator.connection&&navigator.connection.saveData)}catch(e){return false}}
+function applyScene(){const r=document.documentElement,bg=document.getElementById("sceneBg");let vid=bg.querySelector("video");
+  if(!TH.scene){delete r.dataset.scene;bg.style.backgroundImage="";if(vid)vid.remove();return}
+  r.dataset.scene=TH.scene.startsWith("v:")?"video":TH.scene;r.style.setProperty("--dim",TH.dim/100);
+  if(TH.scene.startsWith("v:")){const id=TH.scene.slice(2),it=vfItem(id)||{v:"fondos/"+id+".mp4",p:"fondos/"+id+".jpg"};
+    bg.style.backgroundImage="url("+it.p+")";if(vfStill()){if(vid)vid.remove();return}
+    if(!vid){vid=document.createElement("video");vid.muted=true;vid.loop=true;vid.playsInline=true;vid.autoplay=true;vid.setAttribute("muted","");vid.setAttribute("playsinline","");vid.setAttribute("aria-hidden","true");bg.prepend(vid)}
+    if(!vid.src.endsWith(it.v)){vid.poster=it.p;vid.src=it.v;vid.play().catch(()=>{})}return}
+  if(vid)vid.remove();
   bg.style.backgroundImage=TH.scene==="foto"&&TH.photo?"url("+TH.photo+")":"url(scenes/"+TH.scene+".svg)"}
+document.addEventListener("visibilitychange",()=>{const v=document.querySelector("#sceneBg video");if(!v)return;if(document.hidden)v.pause();else v.play().catch(()=>{})});
 function saveScene(){try{localStorage.setItem("tracker90:scene",JSON.stringify(TH))}catch(e){try{const t={...TH,photo:""};localStorage.setItem("tracker90:scene",JSON.stringify(t))}catch(_){}}}
 function renderThemes(){const el=document.getElementById("themeBody"),light=document.documentElement.dataset.app==="light";
   const card=(id,label,bg)=>'<button class="scard" data-scene="'+id+'" aria-pressed="'+(TH.scene===id)+'"><span class="sthumb" style="'+bg+'"></span><span>'+label+'</span></button>';
@@ -3646,11 +3673,17 @@ async function renderVision(){const el=document.getElementById("vbBody");if(!el)
     '<label class="lbl">Música<select id="vbMusic"><option value="app">Sonidos de la app</option><option value="4haus"'+(d.music==="4haus"?' selected':'')+(conn?'':' disabled')+'>Biblioteca instrumental de 4haus'+(conn?'':' (pronto)')+'</option></select></label>'+
     '<label class="lbl">Velocidad de la voz<input type="range" id="vbRate" min=".7" max="1.15" step=".05" value="'+(d.rate||.92)+'"></label></div>'+
     '<p class="note" style="text-align:left">A la hora de despertar, tu primer paso del día en Inicio será «Tu despertar». La app web no puede sonar sola sin que la abras; la versión para App Store y Google Play podrá funcionar como alarma.</p></section>';
+  h+='<section class="panel"><div class="row-actions" style="justify-content:space-between"><h3 style="margin:0">Fondos en movimiento</h3><span class="status">'+(VF.list?VF.list.reduce((a,c)=>a+c.items.length,0)+' paisajes':'')+'</span></div><p class="status" style="margin:4px 0 12px">Elige una categoría y toca un paisaje para usarlo de fondo en toda la app.</p><div id="vbFondos">'+vfHTML()+'</div></section>';
   h+='<section class="panel"><h3>Fondo de la app</h3><div class="sgrid" id="vbScenes"></div><label class="lbl">Opacidad de la ventana · <b id="dimV">'+TH.dim+' %</b><input type="range" id="dimR" min="35" max="85" value="'+TH.dim+'"'+(TH.scene?'':' disabled')+'></label>'+
     '<div class="seg2" role="group" aria-label="Ventana"><button data-tmode="dark" aria-pressed="'+(document.documentElement.dataset.app!=="light")+'">Ventana oscura</button><button data-tmode="light" aria-pressed="'+(document.documentElement.dataset.app==="light")+'">Ventana clara</button></div></section>';
   el.innerHTML=h;
   const light=document.documentElement.dataset.app==="light",card=(id,label,bg)=>'<button class="scard" data-scene="'+id+'" aria-pressed="'+(TH.scene===id)+'"><span class="sthumb" style="'+bg+'"></span><span>'+label+'</span></button>';
   document.getElementById("vbScenes").innerHTML=card("",light?"Blanco liso":"Gris oscuro liso","background:"+(light?"#fff":"#1E1F22"))+(TH.photo?card("foto","Mi sueño","background-image:url("+TH.photo+")"):"")+SCENES.map(([k,n])=>card(k,n,"background-image:url(scenes/"+k+".svg)")).join('')}
+function vfHTML(){if(!VF.list){vfList().then(()=>{const el=document.getElementById("vbFondos");if(el){el.innerHTML=vfHTML();if(page==="vision")renderVision()}});return'<p class="status">Cargando paisajes…</p>'}
+  const cur=TH.scene&&TH.scene.startsWith("v:")?TH.scene.slice(2):"";
+  return'<div class="vfcats">'+VF.list.map(c=>{const op=VF.open===c.k,has=c.items.some(i=>i.id===cur);
+    return'<div class="vfcat'+(op?' open':'')+'"><button class="spitem" data-vfcat="'+c.k+'" aria-expanded="'+op+'" aria-pressed="'+has+'"><span class="vfmini" style="background-image:url('+c.items[0].p+')"></span><b>'+esc(c.n)+' <em>'+c.items.length+'</em></b><span>'+(has?'En uso: '+esc((c.items.find(i=>i.id===cur)||{}).n):esc(c.items.slice(0,3).map(i=>i.n).join(" · ")))+'</span><i class="chev" aria-hidden="true"></i></button>'+
+      (op?'<div class="vfgrid">'+c.items.map((it,i)=>'<button class="vfcard" data-vfondo="'+it.id+'" aria-pressed="'+(cur===it.id)+'"><span class="vfthumb" style="background-image:url('+it.p+')"><video muted loop playsinline preload="none" poster="'+it.p+'" data-src="'+it.v+'"></video><span class="tn">'+String(i+1).padStart(2,"0")+'</span></span><span class="vfn">'+esc(it.n)+'</span></button>').join('')+'</div>':'')+'</div>'}).join('')+'</div>'}
 function vbForm(){const x=VB.edit,ref=x.refData||"";
   return'<form class="vbform" id="vbForm" novalidate><div class="f2">'+
    '<label class="lbl">Nombre de tu sueño<input id="vfName" maxlength="60" value="'+esc(x.name||"")+'" placeholder="Ej. Mi casa en Quilmaná"></label>'+
@@ -3679,6 +3712,8 @@ async function vbGenerate(it){const d=vbDoc();if(AUTH&&!user){gate("account","Cr
   catch(e){VB.msg=e.message}
   it.pending=false;VB.busy=false;savePlan(VB_PATH);renderVision()}
 document.getElementById("viewVision").addEventListener("click",async e=>{const t=e.target.closest("button");if(!t)return;const d=t.dataset,doc=vbDoc();
+  if(d.vfcat){VF.open=VF.open===d.vfcat?null:d.vfcat;document.getElementById("vbFondos").innerHTML=vfHTML();return}
+  if(d.vfondo){TH.scene="v:"+d.vfondo;if(TH.dim<55)TH.dim=62;saveScene();applyScene();document.getElementById("vbFondos").innerHTML=vfHTML();const s=document.getElementById("vbScenes");if(s)s.querySelectorAll(".scard").forEach(b=>b.setAttribute("aria-pressed","false"));const r=document.getElementById("dimR");if(r)r.disabled=false;setStatus("Fondo: "+((vfItem(d.vfondo)||{}).n||""));return}
   if(d.vnew!==undefined){VB.edit={style:"real",area:"espiritu"};VB.msg="";renderVision();setTimeout(()=>document.getElementById("vfName").focus(),60);return}
   if(d.vedit){const x=doc.dreams.find(y=>y.id===d.vedit);VB.edit={...x};VB.msg="";renderVision();document.getElementById("vbForm").scrollIntoView({behavior:"smooth",block:"center"});return}
   if(d.vcancel!==undefined){VB.edit=null;renderVision();return}
@@ -3698,6 +3733,8 @@ document.getElementById("viewVision").addEventListener("change",async e=>{const 
   if(t.id==="vbVoice"){doc.voice=t.value;savePlan(VB_PATH);return}
   if(t.id==="vbMusic"){doc.music=t.value;savePlan(VB_PATH);return}
   if(t.id==="vbRate"){doc.rate=+t.value;savePlan(VB_PATH);vbSpeak("Así suena tu voz de declaraciones.",+t.value);return}});
+document.getElementById("viewVision").addEventListener("pointerover",e=>{const c=e.target.closest(".vfcard");if(!c||vfStill())return;const v=c.querySelector("video");if(v&&!v.src){v.src=v.dataset.src}if(v)v.play().catch(()=>{})});
+document.getElementById("viewVision").addEventListener("pointerout",e=>{const c=e.target.closest(".vfcard");if(!c||c.contains(e.relatedTarget))return;const v=c.querySelector("video");if(v)v.pause()});
 document.getElementById("viewVision").addEventListener("input",e=>{if(e.target.id==="dimR"){TH.dim=+e.target.value;document.getElementById("dimV").textContent=TH.dim+" %";document.documentElement.style.setProperty("--dim",TH.dim/100);saveScene()}});
 /* ---- Reproductor: imágenes + sonido + voz ---- */
 function vbVoiceEs(){const vs=(window.speechSynthesis&&speechSynthesis.getVoices())||[];return vs.find(v=>/es[-_](MX|US|419|PE|CO|AR)/i.test(v.lang))||vs.find(v=>/^es/i.test(v.lang))||null}

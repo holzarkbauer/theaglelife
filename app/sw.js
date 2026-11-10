@@ -1,12 +1,12 @@
 // Service worker: permite instalar la app y leer la Biblia sin conexión.
-const V = "eagle-v19";
+const V = "eagle-v20";
 self.addEventListener("install", () => self.skipWaiting());
 self.addEventListener("activate", e => e.waitUntil(
   caches.keys().then(ks => Promise.all(ks.filter(k => k !== V).map(k => caches.delete(k)))).then(() => self.clients.claim())));
 self.addEventListener("fetch", e => {
   const u = new URL(e.request.url);
   if (e.request.method !== "GET" || u.origin !== location.origin) return;
-  if (u.pathname.includes("/sonidos/")) return;        // audio en streaming: directo de la red (el navegador lo guarda solo)
+  if (u.pathname.includes("/sonidos/") || u.pathname.includes("/fondos/")) return;        // audio en streaming: directo de la red (el navegador lo guarda solo)
   if (u.pathname.includes("/biblia/")) {            // la Biblia: primero caché
     e.respondWith(caches.open(V).then(c => c.match(e.request).then(r => r || fetch(e.request).then(res => { if (res.ok) c.put(e.request, res.clone()); return res; }))));
     return;
