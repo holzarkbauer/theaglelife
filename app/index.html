@@ -3640,7 +3640,6 @@ function applyScene(){const r=document.documentElement,bg=document.getElementByI
     if(!vid.src.endsWith(it.v)){vid.poster=it.p;vid.src=it.v;vid.play().catch(()=>{})}return}
   if(vid)vid.remove();
   bg.style.backgroundImage=TH.scene==="foto"&&TH.photo?"url("+TH.photo+")":"url(scenes/"+TH.scene+".svg)"}
-if(TH.scene&&TH.scene.startsWith("v:")){TH.scene="";saveScene()}
 document.addEventListener("visibilitychange",()=>{const v=document.querySelector("#sceneBg video");if(!v)return;if(document.hidden)v.pause();else v.play().catch(()=>{})});
 function saveScene(){try{localStorage.setItem("tracker90:scene",JSON.stringify(TH))}catch(e){try{const t={...TH,photo:""};localStorage.setItem("tracker90:scene",JSON.stringify(t))}catch(_){}}}
 function renderThemes(){const el=document.getElementById("themeBody"),light=document.documentElement.dataset.app==="light";
@@ -3721,14 +3720,19 @@ async function renderVision(){const el=document.getElementById("vbBody");if(!el)
   h+='<section class="panel"><h3>Fondo de tu tiempo de meditación</h3><p class="status" style="margin:4px 0 12px">Lo que verás mientras suenan tus declaraciones al despertar, en el ejercicio o al celebrar una meta.</p>'+
     '<div class="seg2" role="group" aria-label="Fondo de meditación"><button data-vbgm="dreams" aria-pressed="'+(bgm==="dreams")+'">Las fotos de mis sueños</button><button data-vbgm="video" aria-pressed="'+(bgm==="video")+'">Un video de la biblioteca</button></div>'+
     (bgm==="dreams"?'<p class="status" style="margin-top:10px">'+(hasImgs?'Se mostrarán tus sueños, uno tras otro, con un fundido suave.':'Aún no tienes fotos en tus sueños: mientras, se usará un video de la biblioteca.')+'</p>':
-      '<div class="row-actions" style="justify-content:space-between;margin:12px 0 8px"><span class="status">'+(VF.list?VF.list.reduce((a,c)=>a+c.items.length,0)+' videos · toca una categoría y elige':'')+'</span>'+(d.bgVideo?'<button class="btng" data-vbtest>Ver cómo queda</button>':'')+'</div><div id="vbFondos">'+vfHTML()+'</div>')+'</section>';
+      '<div class="row-actions" style="justify-content:space-between;margin:12px 0 8px"><span class="status">'+(VF.list?VF.list.reduce((a,c)=>a+c.items.length,0)+' videos · toca una categoría y elige':'')+'</span>'+(d.bgVideo?'<button class="btng" data-vbtest>Ver cómo queda</button>':'')+'</div><div id="vbFondos">'+vfHTML("med")+'</div>')+'</section>';
+  const appVid=!!(TH.scene&&TH.scene.startsWith("v:")),appShow=appVid||VF.appOpen,light=document.documentElement.dataset.app==="light";
+  h+='<section class="panel"><h3>Fondo de la app</h3><p class="status" style="margin:4px 0 12px">Lo que ves detrás de todas las pantallas, en lugar del fondo '+(light?'blanco':'negro')+'.</p>'+
+    '<div class="seg2" role="group" aria-label="Fondo de la app"><button data-vappbg="plain" aria-pressed="'+!appShow+'">Color liso</button><button data-vappbg="video" aria-pressed="'+appShow+'">Video en movimiento</button></div>'+
+    (appShow?'<label class="lbl" style="margin-top:12px">Opacidad de la ventana · <b id="dimV">'+TH.dim+' %</b><input type="range" id="dimR" min="35" max="85" value="'+TH.dim+'"'+(appVid?'':' disabled')+'></label><p class="status" style="margin:0 0 8px">Más opacidad = texto más fácil de leer. El video se pausa cuando sales de la app.</p><div id="vbFondosApp">'+vfHTML("app")+'</div>':'')+
+    '<div class="seg2" role="group" aria-label="Ventana" style="margin-top:12px"><button data-tmode="dark" aria-pressed="'+!light+'">Ventana oscura</button><button data-tmode="light" aria-pressed="'+light+'">Ventana clara</button></div></section>';
 
   el.innerHTML=h}
-function vfHTML(){if(!VF.list){vfList().then(()=>{const el=document.getElementById("vbFondos");if(el){el.innerHTML=vfHTML();if(page==="vision")renderVision()}});return'<p class="status">Cargando paisajes…</p>'}
-  const cur=vbDoc().bgVideo||"";
-  return'<div class="vfcats">'+VF.list.map(c=>{const op=VF.open===c.k,has=c.items.some(i=>i.id===cur);
-    return'<div class="vfcat'+(op?' open':'')+'"><button class="spitem" data-vfcat="'+c.k+'" aria-expanded="'+op+'" aria-pressed="'+has+'"><span class="vfmini" style="background-image:url('+c.items[0].p+')"></span><b>'+esc(c.n)+' <em>'+c.items.length+'</em></b><span>'+(has?'En uso: '+esc((c.items.find(i=>i.id===cur)||{}).n):esc(c.items.slice(0,3).map(i=>i.n).join(" · ")))+'</span><i class="chev" aria-hidden="true"></i></button>'+
-      (op?'<div class="vfgrid">'+c.items.map((it,i)=>'<button class="vfcard" data-vfondo="'+it.id+'" aria-pressed="'+(cur===it.id)+'"><span class="vfthumb" style="background-image:url('+it.p+')"><video muted loop playsinline preload="none" poster="'+it.p+'" data-src="'+it.v+'"></video><span class="tn">'+String(i+1).padStart(2,"0")+'</span></span><span class="vfn">'+esc(it.n)+'</span></button>').join('')+'</div>':'')+'</div>'}).join('')+'</div>'}
+function vfHTML(tg){tg=tg||"med";if(!VF.list){vfList().then(()=>{if(page==="vision")renderVision()});return'<p class="status">Cargando paisajes…</p>'}
+  const cur=tg==="app"?(TH.scene&&TH.scene.startsWith("v:")?TH.scene.slice(2):""):(vbDoc().bgVideo||""),openK=tg==="app"?VF.openApp:VF.open;
+  return'<div class="vfcats">'+VF.list.map(c=>{const op=openK===c.k,has=c.items.some(i=>i.id===cur);
+    return'<div class="vfcat'+(op?' open':'')+'"><button class="spitem" data-vfcat="'+tg+':'+c.k+'" aria-expanded="'+op+'" aria-pressed="'+has+'"><span class="vfmini" style="background-image:url('+c.items[0].p+')"></span><b>'+esc(c.n)+' <em>'+c.items.length+'</em></b><span>'+(has?'En uso: '+esc((c.items.find(i=>i.id===cur)||{}).n):esc(c.items.slice(0,3).map(i=>i.n).join(" · ")))+'</span><i class="chev" aria-hidden="true"></i></button>'+
+      (op?'<div class="vfgrid">'+c.items.map((it,i)=>'<button class="vfcard" data-vfondo="'+tg+':'+it.id+'" aria-pressed="'+(cur===it.id)+'"><span class="vfthumb" style="background-image:url('+it.p+')"><video muted loop playsinline preload="none" poster="'+it.p+'" data-src="'+it.v+'"></video><span class="tn">'+String(i+1).padStart(2,"0")+'</span></span><span class="vfn">'+esc(it.n)+'</span></button>').join('')+'</div>':'')+'</div>'}).join('')+'</div>'}
 function vbForm(){const x=VB.edit,ref=x.refData||"";
   return'<form class="vbform" id="vbForm" novalidate><div class="f2">'+
    '<label class="lbl">Nombre de tu sueño<input id="vfName" maxlength="60" value="'+esc(x.name||"")+'" placeholder="Ej. Mi casa en Quilmaná"></label>'+
@@ -3757,8 +3761,10 @@ async function vbGenerate(it){const d=vbDoc();if(AUTH&&!user){gate("account","Cr
   catch(e){VB.msg=e.message}
   it.pending=false;VB.busy=false;savePlan(VB_PATH);renderVision()}
 document.getElementById("viewVision").addEventListener("click",async e=>{const t=e.target.closest("button");if(!t)return;const d=t.dataset,doc=vbDoc();
-  if(d.vfcat){VF.open=VF.open===d.vfcat?null:d.vfcat;document.getElementById("vbFondos").innerHTML=vfHTML();return}
-  if(d.vfondo){doc.bgVideo=d.vfondo;doc.bgMode="video";savePlan(VB_PATH);renderVision();setStatus("Fondo de meditación: "+((vfItem(d.vfondo)||{}).n||""));return}
+  if(d.vfcat){const [tg,k]=d.vfcat.split(":");if(tg==="app")VF.openApp=VF.openApp===k?null:k;else VF.open=VF.open===k?null:k;const el=document.getElementById(tg==="app"?"vbFondosApp":"vbFondos");if(el)el.innerHTML=vfHTML(tg);return}
+  if(d.vfondo){const [tg,id]=d.vfondo.split(":");if(tg==="app"){TH.scene="v:"+id;if(TH.dim<55)TH.dim=62;saveScene();applyScene();renderVision();setStatus("Fondo de la app: "+((vfItem(id)||{}).n||""));return}
+    doc.bgVideo=id;doc.bgMode="video";savePlan(VB_PATH);renderVision();setStatus("Fondo de meditación: "+((vfItem(id)||{}).n||""));return}
+  if(d.vappbg){if(d.vappbg==="plain"){VF.appOpen=false;TH.scene="";saveScene();applyScene()}else{VF.appOpen=true;vfList().then(renderVision)}renderVision();return}
   if(d.vbgm){doc.bgMode=d.vbgm;savePlan(VB_PATH);if(d.vbgm==="video")vfList().then(renderVision);renderVision();return}
   if(d.vbtest!==undefined){vbPlay("wake",true);return}
   if(d.vvtest!==undefined){const v=vbVoiceSel();vbSpeak("Hola. Así suena "+(v?v.name:"tu voz")+" leyendo tus declaraciones.");return}
