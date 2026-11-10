@@ -1039,6 +1039,18 @@ body > .rdbox.rd-rot .rdtools{position:sticky;top:0;z-index:5}
 .menu > #loginBtn{width:100%;min-height:46px;background:var(--lime);color:#151515;border:0;font-weight:600}
 #soundPop{max-height:calc(100dvh - 96px);overflow-y:auto;overscroll-behavior:contain}
 .spnow{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:12.5px;margin:10px 0 4px;padding:8px 10px;border-radius:12px;background:rgba(255,255,255,.06)}
+.spcat{display:contents}
+.spitem[data-scat]{position:relative;padding-right:34px}
+.spitem[data-scat] em{font-style:normal;font-weight:500;opacity:.55;font-size:11px;margin-left:4px}
+.spitem .chev{position:absolute;right:12px;top:50%;width:8px;height:8px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;opacity:.6;transform:translateY(-70%) rotate(45deg);transition:transform .25s}
+.spitem[aria-expanded="true"] .chev{transform:translateY(-30%) rotate(-135deg)}
+.sptrk{display:grid;gap:2px;padding:6px;border-radius:14px;background:rgba(127,127,127,.08);animation:fadein .25s ease both}
+.sptrk button{display:flex;align-items:center;gap:10px;text-align:left;font:inherit;font-size:13px;color:inherit;background:none;border:0;border-radius:10px;padding:9px 10px;cursor:pointer;transition:background .2s,box-shadow .2s}
+.sptrk button:hover{background:rgba(127,127,127,.1)}
+.sptrk button[aria-selected="true"]{background:rgba(127,127,127,.16);box-shadow:0 8px 18px -12px rgba(0,0,0,.6);font-weight:600}
+.sptrk .tn{font-variant-numeric:tabular-nums;opacity:.5;font-size:11px;width:18px}
+.eq{margin-left:auto;display:inline-flex;gap:2px;align-items:flex-end;height:12px}.eq i{width:3px;background:var(--lime);border-radius:2px;animation:eq 1s ease-in-out infinite}.eq i:nth-child(2){animation-delay:.2s}.eq i:nth-child(3){animation-delay:.4s}
+@keyframes eq{0%,100%{height:4px}50%{height:12px}}
 </style>
 
 <div id="sceneBg" aria-hidden="true"></div>
@@ -3336,9 +3348,11 @@ document.getElementById("brandBtn").addEventListener("click",()=>showPage("home"
 /* ---- Sonido de fondo: grabaciones con licencia (app/sonidos) o, si no hay, generado en el navegador ---- */
 const SOUNDS={
  rain:{g:"Naturaleza",n:"Lluvia",d:"Para reflexionar y escribir"},
- forest:{g:"Naturaleza",n:"Ambiente de bosque",d:"Aves y aire libre para orar"},
- water:{g:"Naturaleza",n:"Agua que fluye",d:"Río tranquilo para leer"},
- wind:{g:"Naturaleza",n:"Viento",d:"Calma amplia para planear"},
+ water:{g:"Naturaleza",n:"Agua",d:"Ríos, olas y mar para leer"},
+ wind:{g:"Naturaleza",n:"Viento",d:"Hojas, árboles y montaña para planear"},
+ forest:{g:"Naturaleza",n:"Ambiente",d:"Bosques y manglares para orar"},
+ birds:{g:"Naturaleza",n:"Aves",d:"Cantos al atardecer"},
+ animals:{g:"Naturaleza",n:"Animales",d:"Grillos en la pradera"},
  calm:{g:"Música",n:"Calma",d:"Acordes suaves para declarar"},
  pink:{g:"Enfoque",n:"Ruido rosa",d:"Lectura y estudio"},
  brown:{g:"Enfoque",n:"Ruido marrón",d:"Enfoque profundo"},
@@ -3404,15 +3418,17 @@ function playLoopEl(n,url,onFail){const c=SND.ctx,X=8,mk=()=>{const a=new Audio(
     if(d-A.a.currentTime<=X+.3){fading=true;B=B||mk();B.a.currentTime=0;B.a.play().catch(()=>{});const t=c.currentTime;fadeIn(B,t);fadeOutP(A,t);
       setTimeout(()=>{try{A.a.pause();A.a.currentTime=0}catch(e){}const T=A;A=B;B=T;fading=false},(X+.5)*1000)}},250);
   return{stop(){alive=false;clearInterval(tick);[A,B].forEach(p=>{if(p){try{p.a.pause();p.a.removeAttribute("src");p.a.load()}catch(e){}}})}}}
-function buildSoundAny(name,pick){const c=SND.ctx,has=SND_FILES.list&&sndItems(name,SND_FILES.list).length,n=buildSound(has?"_vacio":name);
+function buildSoundAny(name,pick){const c=SND.ctx,has=SND_FILES.list&&sndItems(name,SND_FILES.list).length,n=buildSound(has?"_vacio":(name==="birds"||name==="animals"?"forest":name));
   // si hay grabaciones para este sonido, una de ellas reemplaza al sonido generado
   sndList().then(async L=>{const arr=sndItems(name,L);if(!arr.length||SND.nodes!==n)return;
     let k=(pick!=null?pick:((SND.pref.trk||{})[name]||0))%arr.length;const it=arr[k];
     try{if(SND.nodes!==n)return;const gen=n.stop.slice();
-      const lp=playLoopEl(n,it.f,()=>{if(SND.nodes===n&&!n.fell){n.fell=true;const g=buildSound(name);g.out.disconnect();g.out.connect(n.out);g.out.gain.setTargetAtTime(1,c.currentTime,.8);n.stop.push(...g.stop);n.real="";renderSoundUI()}});
+      const lp=playLoopEl(n,it.f,()=>{if(SND.nodes===n&&!n.fell){n.fell=true;const g=buildSound(name==="birds"||name==="animals"?"forest":name);g.out.disconnect();g.out.connect(n.out);g.out.gain.setTargetAtTime(1,c.currentTime,.8);n.stop.push(...g.stop);n.real="";renderSoundUI()}});
       n.stop.push(lp);n.real=it.n||"Grabación";n.idx=k;n.count=arr.length;
       gen.forEach(x=>{try{if(x.gain)x.gain.setTargetAtTime(0,c.currentTime,.8)}catch(e){}});setTimeout(()=>gen.forEach(x=>{try{x.stop()}catch(e){}}),2500);renderSoundUI()}catch(e){}})
   return n}
+function sndPick(name,k){SND.pref.on=true;SND.pref.auto=false;SND.pref.sound=name;SND.pref.trk=Object.assign({},SND.pref.trk,{[name]:k});saveSnd();
+  if(SND.cur===name&&SND.nodes&&SND.ctx){const old=SND.nodes;fadeOut(old);const n=buildSoundAny(name,k);SND.nodes=n;n.out.gain.setTargetAtTime(1,SND.ctx.currentTime,1.2);renderSoundUI()}else applySound()}
 function sndNext(){if(!SND.nodes||!SND.cur)return;const name=SND.cur,old=SND.nodes,k=(old.idx||0)+1;SND.pref.trk=Object.assign({},SND.pref.trk,{[name]:k%(old.count||1)});saveSnd();fadeOut(old);const n=buildSoundAny(name,k);SND.nodes=n;n.out.gain.setTargetAtTime(1,SND.ctx.currentTime,1.2);renderSoundUI()}
 function soundTarget(){return SND.pref.auto?(FOCUS.on?"focus":SOUND_FOR[page]||"calm"):SND.pref.sound}
 function applySound(){if(!SND.pref.on){if(SND.nodes){const n=SND.nodes;SND.nodes=null;SND.cur=null;fadeOut(n)}renderSoundUI();return}
@@ -3428,14 +3444,19 @@ function renderSoundUI(){const b=document.getElementById("musicBtn");b.setAttrib
   const p=document.getElementById("soundPop");if(p.hidden)return;
   p.innerHTML='<div class="sphead"><b>Sonido de fondo</b><button class="sw" id="sndOn" role="switch" aria-checked="'+!!SND.pref.on+'"><i></i></button></div>'+
     '<label class="check"><input type="checkbox" id="sndAuto"'+(SND.pref.auto?' checked':'')+'> Elegir según la actividad</label>'+
-    ["Naturaleza","Música","Enfoque"].map(gr=>'<span class="spgr">'+gr+'</span><div class="splist">'+Object.entries(SOUNDS).filter(([,s])=>s.g===gr).map(([k,s])=>'<button class="spitem" data-snd="'+k+'" aria-pressed="'+(SND.pref.on&&SND.cur===k)+'"><b>'+s.n+'</b><span>'+s.d+'</span></button>').join('')+'</div>').join('')+
-    (SND.pref.on&&SND.nodes&&SND.nodes.real?'<div class="spnow"><span>Sonando: <b>'+esc(SND.nodes.real)+'</b></span>'+(SND.nodes.count>1?'<button class="tab" id="sndNext">Otro sonido ('+((SND.nodes.idx||0)+1)+'/'+SND.nodes.count+')</button>':'')+'</div>':'')+
+    ["Naturaleza","Música","Enfoque"].map(gr=>'<span class="spgr">'+gr+'</span><div class="splist">'+Object.entries(SOUNDS).filter(([,s])=>s.g===gr).map(([k,s])=>{
+      const its=gr==="Naturaleza"?sndItems(k,SND_FILES.list):[],op=SND.open===k&&its.length,on=SND.pref.on&&SND.cur===k;
+      if(!its.length)return'<button class="spitem" data-snd="'+k+'" aria-pressed="'+on+'"><b>'+s.n+'</b><span>'+s.d+'</span></button>';
+      const sel=on&&SND.nodes?SND.nodes.idx:-1;
+      return'<div class="spcat'+(op?' open':'')+'"><button class="spitem" data-scat="'+k+'" aria-expanded="'+!!op+'" aria-pressed="'+on+'"><b>'+s.n+' <em>'+its.length+'</em></b><span>'+(on&&SND.nodes&&SND.nodes.real?'Sonando: '+esc(SND.nodes.real):s.d)+'</span><i class="chev" aria-hidden="true"></i></button>'+
+        (op?'<div class="sptrk" role="listbox" aria-label="'+s.n+'">'+its.map((it,i)=>'<button role="option" data-trk="'+k+':'+i+'" aria-selected="'+(sel===i)+'"><span class="tn">'+String(i+1).padStart(2,"0")+'</span>'+esc(it.n)+(sel===i?'<span class="eq" aria-hidden="true"><i></i><i></i><i></i></span>':'')+'</button>').join('')+'</div>':'')+'</div>'}).join('')+'</div>').join('')+
     '<label class="lbl">Volumen<input type="range" id="sndVol" min="0" max="1" step=".05" value="'+SND.pref.vol+'"></label>'+
-    '<p class="note" style="text-align:left;margin:0">Usa audífonos para un mejor efecto. En Naturaleza, «Otro sonido» cambia la grabación. Si un sonido te distrae, prueba otro o bájale el volumen.</p>'}
+    '<p class="note" style="text-align:left;margin:0">Usa audífonos para un mejor efecto. En Naturaleza, toca una categoría para ver todas sus grabaciones. Si un sonido te distrae, prueba otro o bájale el volumen.</p>'}
 document.getElementById("musicBtn").addEventListener("click",()=>{const p=document.getElementById("soundPop");p.hidden=!p.hidden;document.getElementById("musicBtn").setAttribute("aria-expanded",String(!p.hidden));renderSoundUI()});
 document.getElementById("soundPop").addEventListener("click",e=>{const t=e.target.closest("button");if(!t)return;
   if(t.id==="sndOn"){SND.pref.on=!SND.pref.on;saveSnd();applySound();return}
-  if(t.id==="sndNext"){sndNext();return}
+  if(t.dataset.scat){const k=t.dataset.scat;SND.open=SND.open===k?null:k;sndList().then(renderSoundUI);renderSoundUI();return}
+  if(t.dataset.trk){const [k,i]=t.dataset.trk.split(":");sndPick(k,+i);return}
   if(t.dataset.snd){SND.pref.on=true;SND.pref.auto=false;SND.pref.sound=t.dataset.snd;saveSnd();applySound();return}});
 document.getElementById("soundPop").addEventListener("change",e=>{if(e.target.id==="sndAuto"){SND.pref.auto=e.target.checked;saveSnd();applySound()}});
 document.getElementById("soundPop").addEventListener("input",e=>{if(e.target.id==="sndVol"){SND.pref.vol=+e.target.value;saveSnd();if(SND.master)SND.master.gain.setTargetAtTime(SND.pref.vol,SND.ctx.currentTime,.1)}});

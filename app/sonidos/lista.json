@@ -1,42 +1,12 @@
 {
  "rain": [
   {
-   "f": "sonidos/lluvia-selva.mp3",
-   "n": "Lluvia en la selva"
-  },
-  {
    "f": "sonidos/lluvia-palmeras.mp3",
    "n": "Lluvia sobre palmeras"
-  }
- ],
- "forest": [
-  {
-   "f": "sonidos/bosque-amanecer.mp3",
-   "n": "Aves al amanecer"
   },
   {
-   "f": "sonidos/bosque-tarde.mp3",
-   "n": "Bosque de pinos por la tarde"
-  },
-  {
-   "f": "sonidos/bosque-atardecer.mp3",
-   "n": "Zorzales al atardecer"
-  },
-  {
-   "f": "sonidos/bosque-mirlo.mp3",
-   "n": "Mirlo y aves lejanas"
-  },
-  {
-   "f": "sonidos/manglar-manana.mp3",
-   "n": "Manglar en la mañana"
-  },
-  {
-   "f": "sonidos/pradera-grillos.mp3",
-   "n": "Pradera con grillos"
-  },
-  {
-   "f": "sonidos/arboles-aves.mp3",
-   "n": "Árboles, hojas y aves"
+   "f": "sonidos/lluvia-selva.mp3",
+   "n": "Lluvia en la selva"
   }
  ],
  "water": [
@@ -63,6 +33,10 @@
    "n": "Hojas en la montaña"
   },
   {
+   "f": "sonidos/arboles-aves.mp3",
+   "n": "Árboles, hojas y aves"
+  },
+  {
    "f": "sonidos/viento-arboles.mp3",
    "n": "Viento entre los árboles"
   },
@@ -85,6 +59,36 @@
   {
    "f": "sonidos/tormenta-himalaya.mp3",
    "n": "Tormenta en el Himalaya"
+  }
+ ],
+ "forest": [
+  {
+   "f": "sonidos/bosque-amanecer.mp3",
+   "n": "Aves al amanecer"
+  },
+  {
+   "f": "sonidos/bosque-tarde.mp3",
+   "n": "Bosque de pinos por la tarde"
+  },
+  {
+   "f": "sonidos/manglar-manana.mp3",
+   "n": "Manglar en la mañana"
+  }
+ ],
+ "birds": [
+  {
+   "f": "sonidos/bosque-atardecer.mp3",
+   "n": "Zorzales al atardecer"
+  },
+  {
+   "f": "sonidos/bosque-mirlo.mp3",
+   "n": "Mirlo y aves lejanas"
+  }
+ ],
+ "animals": [
+  {
+   "f": "sonidos/pradera-grillos.mp3",
+   "n": "Pradera con grillos"
   }
  ]
 }

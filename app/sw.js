@@ -1,5 +1,5 @@
 // Service worker: permite instalar la app y leer la Biblia sin conexión.
-const V = "eagle-v18";
+const V = "eagle-v19";
 self.addEventListener("install", () => self.skipWaiting());
 self.addEventListener("activate", e => e.waitUntil(
   caches.keys().then(ks => Promise.all(ks.filter(k => k !== V).map(k => caches.delete(k)))).then(() => self.clients.claim())));
