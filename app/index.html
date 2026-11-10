@@ -3350,9 +3350,9 @@ const SOUND_FOR={vision:"calm",welcome:"forest",home:"forest",decl:"calm",tools:
 const SND_FILES={list:null,loading:null,buf:{}};
 setTimeout(()=>sndList(),1500);
 async function sndList(){if(SND_FILES.list)return SND_FILES.list;if(!SND_FILES.loading)SND_FILES.loading=fetch("sonidos/lista.json",{cache:"no-cache"}).then(r=>r.ok?r.json():{}).catch(()=>({})).then(j=>SND_FILES.list=j&&typeof j==="object"?j:{});return SND_FILES.loading}
-const SND={ctx:null,master:null,cur:null,nodes:null,pref:{on:false,auto:true,sound:"calm",vol:.35}};
-try{Object.assign(SND.pref,JSON.parse(localStorage.getItem("tracker90:sound")||"{}"))}catch(e){}
-window.__SND=SND;
+const SND={ctx:null,master:null,cur:null,nodes:null,pref:{on:true,auto:true,sound:"calm",vol:.6,v:2}};
+try{const sv=JSON.parse(localStorage.getItem("tracker90:sound")||"{}");if(sv.v===2)Object.assign(SND.pref,sv);else if(sv.sound){SND.pref.sound=sv.sound;SND.pref.auto=sv.auto!==false}}catch(e){}
+window.__SND=SND;setTimeout(()=>{window.__SND.fx={playLoopEl,buildSound}},0);
 function saveSnd(){try{localStorage.setItem("tracker90:sound",JSON.stringify(SND.pref))}catch(e){}}
 function noiseBuffer(ctx,kind){const len=ctx.sampleRate*8,buf=ctx.createBuffer(2,len,ctx.sampleRate);
   for(let ch=0;ch<2;ch++){const d=buf.getChannelData(ch);let b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0,last=0;
@@ -3390,18 +3390,27 @@ function buildSound(name){const c=SND.ctx,out=c.createGain();out.gain.value=0;ou
   return{out,stop}}
 function sndItems(name,L){return((L&&L[name])||[]).map(x=>typeof x==="string"?{f:x,n:""}:x).filter(x=>x&&x.f)}
 async function sndBuf(url){const c=SND.ctx;return SND_FILES.buf[url]||(SND_FILES.buf[url]=await fetch(url).then(r=>{if(!r.ok)throw 0;return r.arrayBuffer()}).then(a=>c.decodeAudioData(a)))}
-/* Reproduce una grabación en bucle sin cortes: cada vuelta empieza 3 s antes de que termine la anterior y se funden */
-function playLoop(n,buf){const c=SND.ctx,X=Math.min(3,buf.duration/4);let alive=true,cur=null;
-  const one=t=>{if(!alive||SND.nodes!==n&&!n.keep)return;const src=c.createBufferSource(),g=c.createGain();src.buffer=buf;src.connect(g);g.connect(n.out);
-    g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(1,t+X);g.gain.setValueAtTime(1,t+buf.duration-X);g.gain.linearRampToValueAtTime(0,t+buf.duration);
-    src.start(t);src.stop(t+buf.duration+.05);cur=src;const next=t+buf.duration-X;setTimeout(()=>one(next),Math.max(0,(next-c.currentTime-1)*1000))};
-  one(c.currentTime+.05);return{stop(){alive=false;try{cur&&cur.stop()}catch(e){}}}}
+/* Grabaciones largas (8–10 min) en streaming: dos reproductores se turnan y se funden 8 s con igual potencia,
+   así no hay corte ni bajón de volumen al volver a empezar. No se descarga todo antes de sonar. */
+function eqCurve(up){const N=64,a=new Float32Array(N);for(let i=0;i<N;i++){const x=i/(N-1);a[i]=up?Math.sin(x*Math.PI/2):Math.cos(x*Math.PI/2)}return a}
+function playLoopEl(n,url,onFail){const c=SND.ctx,X=8,mk=()=>{const a=new Audio();a.src=url;a.preload="auto";a.setAttribute("playsinline","");const g=c.createGain();g.gain.value=0;
+    try{c.createMediaElementSource(a).connect(g)}catch(e){}g.connect(n.out);return{a,g}};
+  let A=mk(),B=null,alive=true,fading=false,started=false;
+  const fadeIn=(p,t)=>{p.g.gain.cancelScheduledValues(t);p.g.gain.setValueCurveAtTime(eqCurve(true),t,X)};
+  const fadeOutP=(p,t)=>{p.g.gain.cancelScheduledValues(t);p.g.gain.setValueAtTime(p.g.gain.value,t);p.g.gain.setValueCurveAtTime(eqCurve(false),t,X)};
+  A.a.play().then(()=>{started=true;const t=c.currentTime;A.g.gain.setValueAtTime(0,t);A.g.gain.linearRampToValueAtTime(1,t+2.5)}).catch(()=>{alive=false;onFail&&onFail()});
+  A.a.addEventListener("error",()=>{if(!started){alive=false;onFail&&onFail()}});
+  const tick=setInterval(()=>{if(!alive)return;const d=A.a.duration;if(!d||fading)return;
+    if(d-A.a.currentTime<=X+.3){fading=true;B=B||mk();B.a.currentTime=0;B.a.play().catch(()=>{});const t=c.currentTime;fadeIn(B,t);fadeOutP(A,t);
+      setTimeout(()=>{try{A.a.pause();A.a.currentTime=0}catch(e){}const T=A;A=B;B=T;fading=false},(X+.5)*1000)}},250);
+  return{stop(){alive=false;clearInterval(tick);[A,B].forEach(p=>{if(p){try{p.a.pause();p.a.removeAttribute("src");p.a.load()}catch(e){}}})}}}
 function buildSoundAny(name,pick){const c=SND.ctx,has=SND_FILES.list&&sndItems(name,SND_FILES.list).length,n=buildSound(has?"_vacio":name);
   // si hay grabaciones para este sonido, una de ellas reemplaza al sonido generado
   sndList().then(async L=>{const arr=sndItems(name,L);if(!arr.length||SND.nodes!==n)return;
     let k=(pick!=null?pick:((SND.pref.trk||{})[name]||0))%arr.length;const it=arr[k];
-    try{const buf=await sndBuf(it.f);if(SND.nodes!==n)return;const gen=n.stop.slice();
-      const lp=playLoop(n,buf);n.stop.push(lp);n.real=it.n||"Grabación";n.idx=k;n.count=arr.length;
+    try{if(SND.nodes!==n)return;const gen=n.stop.slice();
+      const lp=playLoopEl(n,it.f,()=>{if(SND.nodes===n&&!n.fell){n.fell=true;const g=buildSound(name);g.out.disconnect();g.out.connect(n.out);g.out.gain.setTargetAtTime(1,c.currentTime,.8);n.stop.push(...g.stop);n.real="";renderSoundUI()}});
+      n.stop.push(lp);n.real=it.n||"Grabación";n.idx=k;n.count=arr.length;
       gen.forEach(x=>{try{if(x.gain)x.gain.setTargetAtTime(0,c.currentTime,.8)}catch(e){}});setTimeout(()=>gen.forEach(x=>{try{x.stop()}catch(e){}}),2500);renderSoundUI()}catch(e){}})
   return n}
 function sndNext(){if(!SND.nodes||!SND.cur)return;const name=SND.cur,old=SND.nodes,k=(old.idx||0)+1;SND.pref.trk=Object.assign({},SND.pref.trk,{[name]:k%(old.count||1)});saveSnd();fadeOut(old);const n=buildSoundAny(name,k);SND.nodes=n;n.out.gain.setTargetAtTime(1,SND.ctx.currentTime,1.2);renderSoundUI()}
@@ -3410,7 +3419,7 @@ function applySound(){if(!SND.pref.on){if(SND.nodes){const n=SND.nodes;SND.nodes
   const want=SOUND_FOR[soundTarget()]||soundTarget();const name=SOUNDS[want]?want:"calm";
   if(!SND.ctx){try{SND.ctx=new (window.AudioContext||window.webkitAudioContext)();SND.master=SND.ctx.createGain();SND.master.connect(SND.ctx.destination)}catch(e){return}}
   if(SND.ctx.state==="suspended")SND.ctx.resume();
-  SND.master.gain.setTargetAtTime(SND.pref.vol*.8,SND.ctx.currentTime,.1);
+  SND.master.gain.setTargetAtTime(SND.pref.vol,SND.ctx.currentTime,.1);
   if(SND.cur===name&&SND.nodes){renderSoundUI();return}
   if(SND.nodes)fadeOut(SND.nodes);
   const n=buildSoundAny(name);SND.nodes=n;n.out.gain.setTargetAtTime(1,SND.ctx.currentTime,.9);SND.nodes=n;SND.cur=name;renderSoundUI()}
@@ -3429,10 +3438,12 @@ document.getElementById("soundPop").addEventListener("click",e=>{const t=e.targe
   if(t.id==="sndNext"){sndNext();return}
   if(t.dataset.snd){SND.pref.on=true;SND.pref.auto=false;SND.pref.sound=t.dataset.snd;saveSnd();applySound();return}});
 document.getElementById("soundPop").addEventListener("change",e=>{if(e.target.id==="sndAuto"){SND.pref.auto=e.target.checked;saveSnd();applySound()}});
-document.getElementById("soundPop").addEventListener("input",e=>{if(e.target.id==="sndVol"){SND.pref.vol=+e.target.value;saveSnd();if(SND.master)SND.master.gain.setTargetAtTime(SND.pref.vol*.8,SND.ctx.currentTime,.1)}});
+document.getElementById("soundPop").addEventListener("input",e=>{if(e.target.id==="sndVol"){SND.pref.vol=+e.target.value;saveSnd();if(SND.master)SND.master.gain.setTargetAtTime(SND.pref.vol,SND.ctx.currentTime,.1)}});
 document.addEventListener("click",e=>{const p=document.getElementById("soundPop");if(!e.target.isConnected)return;if(!p.hidden&&!e.target.closest("#soundPop,#musicBtn")){p.hidden=true;document.getElementById("musicBtn").setAttribute("aria-expanded","false")}});
 // Los navegadores solo dejan sonar audio después de un toque: si estaba activado, arranca con el primer toque
-document.addEventListener("pointerdown",function first(){if(SND.pref.on&&!SND.nodes)applySound();document.removeEventListener("pointerdown",first)},{once:false});
+try{if(navigator.audioSession)navigator.audioSession.type="playback"}catch(e){}
+document.addEventListener("pointerdown",function first(){if(SND.pref.on&&!SND.nodes)applySound();else if(SND.ctx&&SND.ctx.state==="suspended")SND.ctx.resume();document.removeEventListener("pointerdown",first)},{once:false});
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&SND.ctx&&SND.ctx.state!=="running"&&SND.pref.on)SND.ctx.resume().catch(()=>{})});
 
 /* ---- Modo enfoque (temporizador + sonido) ---- */
 const FOCUS={on:false,act:null,end:0,timer:null,total:0};
