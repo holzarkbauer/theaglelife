@@ -9,6 +9,7 @@
 //   GET  {URL}/v1/jobs/{id}                                                                     → { status:"queued|running|succeeded|failed", images?:[{url}], error? }
 //   GET  {URL}/v1/music?mood=wake|exercise|goal|focus|prayer&minutes=N                          → { tracks:[{id,title,url,duration,license}] }
 //   POST {URL}/v1/voice   { text, voice, language:"es" }                                         → { url }
+//   GET  {URL}/v1/voices?language=es                                                           → { voices:[{id,name,gender,description,sample_url}] }
 import { createClient } from "npm:@supabase/supabase-js@2";
 
 const LIMIT = [0, 3, 12, 40];          // imágenes IA por mes: Gratis, Prueba, Semillas, Eagle (se cambia en app_settings: vision_images)
@@ -100,9 +101,23 @@ Deno.serve(async (req: Request) => {
       const out = await call("/v1/music?mood=" + encodeURIComponent(S(b.mood, 20)) + "&minutes=" + Math.min(90, Math.max(1, Number(b.minutes) || 10)));
       return json({ tracks: (out.tracks ?? []).slice(0, 10) });
     }
+    // Catálogo de voces de 4haus (para que el administrador las agregue desde el Backoffice)
+    if (b.action === "voices") {
+      const { data: isAdm } = await asUser.rpc("is_admin");
+      if (!isAdm) return json({ error: "Solo el administrador puede ver el catálogo de voces." }, 403);
+      const out = await call("/v1/voices?language=es");
+      return json({ voices: (out.voices ?? []).slice(0, 200) });
+    }
     if (b.action === "voice") {
-      if (tier < 1) return json({ error: "La voz premium es parte de los planes.", code: "needs_plan" }, 402);
-      const out = await call("/v1/voice", { method: "POST", body: JSON.stringify({ text: S(b.text, 1500), voice: S(b.voice, 40) || "es-calida", language: "es" }) });
+      // b.voice_id = id de la voz en The Eagle Life (tabla voices). Se respeta el plan mínimo de cada voz.
+      let vid = S(b.voice, 60), minTier = 1;
+      if (b.voice_id) {
+        const { data: v } = await admin.from("voices").select("provider_voice_id,min_tier,active,provider").eq("id", S(b.voice_id, 40)).maybeSingle();
+        if (!v || !v.active || v.provider !== "4haus") return json({ error: "Esa voz ya no está disponible." }, 404);
+        vid = v.provider_voice_id; minTier = Number(v.min_tier ?? 1);
+      }
+      if (tier < minTier) return json({ error: "Esa voz es parte de los planes.", code: "needs_plan" }, 402);
+      const out = await call("/v1/voice", { method: "POST", body: JSON.stringify({ text: S(b.text, 1500), voice: vid || "es-calida", language: "es" }) });
       return json({ url: out.url });
     }
     return json({ error: "Acción no válida." }, 400);

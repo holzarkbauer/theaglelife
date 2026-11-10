@@ -1067,6 +1067,31 @@ body > .rdbox.rd-rot .rdtools{position:sticky;top:0;z-index:5}
 .vfcard[aria-pressed="true"] .vfthumb::after{content:"En uso";position:absolute;right:8px;bottom:8px;font-size:10.5px;font-weight:700;padding:3px 8px;border-radius:999px;background:var(--lime);color:#151515}
 .vfn{font-size:12.5px;line-height:1.3;opacity:.85}
 .vfcard[aria-pressed="true"] .vfn{font-weight:700;opacity:1}
+.vbvideo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity 1.6s ease}.vbvideo.in{opacity:1}
+.vsel{display:flex;gap:8px;align-items:center}.vsel select{flex:1;min-width:0}
+.mdcat{border:1px solid #E7E8EC;border-radius:14px;padding:10px;display:flex;flex-direction:column;gap:8px}
+.mdcat.off,.mdt tr.off{opacity:.55}
+.mdhead{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.mdhead .mdname{max-width:220px;font-weight:600}.mdhead .mddesc{max-width:300px;flex:1}
+.mdtog{width:30px;height:30px;border-radius:8px;border:0;background:#F2F3F5;cursor:pointer;position:relative}
+.mdtog .chev{position:absolute;left:11px;top:9px;width:7px;height:7px;border-right:2px solid #111318;border-bottom:2px solid #111318;transform:rotate(-45deg);transition:transform .2s}
+.mdtog[aria-expanded="true"] .chev{transform:rotate(45deg);top:8px}
+.mdcount{font-size:12px;color:#6b6d72;background:#F2F3F5;border-radius:999px;padding:2px 8px}
+.mdsw{display:inline-flex;gap:6px;align-items:center;font-size:12.5px}
+.mdord{display:inline-flex;gap:4px}
+.btng.sm,.btnw.sm{padding:4px 10px;font-size:12px;min-height:28px}
+.btng.danger{color:#B42318}
+.mditems{display:flex;flex-direction:column;gap:10px;padding:4px 2px}
+.mdt .ain.mdname{max-width:260px;width:100%}
+.mdthumb{display:block;width:72px;height:42px;border-radius:8px;background:#ddd center/cover}
+.mdup{align-self:flex-start;cursor:pointer;display:inline-flex;align-items:center}
+.mdt td{vertical-align:middle}
+.mdt .mddesc{display:block;margin-top:4px;max-width:260px;width:100%;font-size:12px}
+.mdcat4h{border-top:1px solid #E7E8EC;padding-top:12px}
+#viewAdmin .mdt input[type=radio],#viewAdmin .mdt input[type=checkbox],#viewAdmin .mdsw input{appearance:auto;-webkit-appearance:auto;accent-color:#2F4A3A;width:16px;height:16px;padding:0;border:0;background:none;box-shadow:none}
+#viewAdmin .mdt td:first-child .ain{min-width:170px;max-width:220px}
+.mdt{display:block;overflow-x:auto}
+#viewAdmin .btng.danger{color:#B42318}
 </style>
 
 <div id="sceneBg" aria-hidden="true"></div>
@@ -3020,6 +3045,9 @@ function renderAdmin(){
   if(ADM.tab==="aut"){const apps=X.author_apps||[];
     h+='<section class="reportcard"><span class="lbl" style="color:#6b6d72">Solicitudes de autores y editoriales · contrato '+esc(TERMS_V)+'</span>'+admTable(["Fecha","Nombre","Organización","Correo","Títulos","% autor","Firma","Estado"],apps.map(a=>'<tr><td>'+fdate(a.created_at)+'</td><td><b>'+esc(a.full_name)+'</b><small> '+esc(a.role||"")+'</small></td><td>'+esc(a.organization||"—")+'</td><td><a href="mailto:'+esc(a.email)+'?subject='+encodeURIComponent("Tu acuerdo de distribución · Semillas de Identidad")+'">'+esc(a.email)+'</a></td><td>'+esc(a.book_titles).replace(/\n/g,"<br>")+'</td><td style="text-align:right;white-space:nowrap">'+a.author_pct+' %</td><td>'+esc(a.signature)+(a.rights_holder?' ✓':'')+'</td><td><select data-apst="'+a.id+'" aria-label="Estado"><option value="pending"'+(a.status==="pending"?' selected':'')+'>Por revisar</option><option value="approved"'+(a.status==="approved"?' selected':'')+'>Aprobado</option><option value="rejected"'+(a.status==="rejected"?' selected':'')+'>Rechazado</option></select></td></tr>'))+
       '<p class="empty2">Al aprobar, publica el título desde Tienda → Administrador (pública o privada) y envía al autor la copia del acuerdo por correo.</p></section>'}
+  if(ADM.tab==="snd")h+=mdHTML("sound");
+  if(ADM.tab==="vid")h+=mdHTML("video");
+  if(ADM.tab==="voz")h+=vozHTML();
   if(ADM.tab==="cfg"){
     h+='<section class="reportcard"><span class="lbl" style="color:#6b6d72">Ajustes de la app</span><div class="f2">'+
       '<label class="lbl lbl2">Meta de usuarios<input class="ain" id="cfGoal" value="'+goal+'" inputmode="numeric"></label>'+
@@ -3379,7 +3407,21 @@ const SOUND_FOR={vision:"calm",welcome:"forest",home:"forest",decl:"calm",tools:
    Si no hay archivo (o no carga), la app genera el sonido en el navegador. Usa solo audio con licencia para apps. */
 const SND_FILES={list:null,loading:null,buf:{}};
 setTimeout(()=>sndList(),1500);
-async function sndList(){if(SND_FILES.list)return SND_FILES.list;if(!SND_FILES.loading)SND_FILES.loading=fetch("sonidos/lista.json",{cache:"no-cache"}).then(r=>r.ok?r.json():{}).catch(()=>({})).then(j=>SND_FILES.list=j&&typeof j==="object"?j:{});return SND_FILES.loading}
+/* Biblioteca de medios: viene del Backoffice (Supabase · media_library). Si aún no existe, usa los archivos de la app. */
+const MEDIA={p:null,data:null};
+function mediaUrl(f){if(!f)return"";if(/^(https?:|sonidos\/|fondos\/|data:)/.test(f))return f;return AUTH&&sb?sb.storage.from("medios").getPublicUrl(f).data.publicUrl:f}
+async function loadMedia(force){if(MEDIA.p&&!force)return MEDIA.p;
+  MEDIA.p=(async()=>{let db=null;try{if(AUTH&&sb){const r=await sb.rpc("media_library");if(!r.error&&r.data&&(r.data.sound||[]).length)db=r.data}}catch(e){}
+    if(db){MEDIA.data={sound:db.sound.map(c=>({k:String(c.id).replace(/^s-/,""),n:c.name,d:c.description||"",items:(c.items||[]).map(i=>({f:mediaUrl(i.f),n:i.n}))})),
+        video:(db.video||[]).map(c=>({k:String(c.id).replace(/^v-/,""),n:c.name,items:(c.items||[]).map(i=>({id:String(i.id).replace(/^v-/,""),n:i.n,v:mediaUrl(i.v),p:mediaUrl(i.p)}))})),voices:db.voices||[],src:"db"};return MEDIA.data}
+    const [sj,vj]=await Promise.all([fetch("sonidos/lista.json",{cache:"no-cache"}).then(r=>r.ok?r.json():{}).catch(()=>({})),fetch("fondos/lista.json",{cache:"no-cache"}).then(r=>r.ok?r.json():[]).catch(()=>[])]);
+    const SN={rain:["Lluvia","Para reflexionar y escribir"],water:["Agua","Ríos, olas y mar para leer"],wind:["Viento","Hojas, árboles y montaña para planear"],forest:["Ambiente","Bosques y manglares para orar"],birds:["Aves","Cantos al atardecer"],animals:["Animales","Grillos en la pradera"]};
+    MEDIA.data={sound:Object.entries(sj).map(([k,its])=>({k,n:(SN[k]||[k])[0],d:(SN[k]||["",""])[1],items:its.map(x=>typeof x==="string"?{f:x,n:""}:x)})),video:vj,voices:[],src:"app"};return MEDIA.data})();
+  return MEDIA.p}
+async function sndList(){if(SND_FILES.list)return SND_FILES.list;if(!SND_FILES.loading)SND_FILES.loading=loadMedia().then(m=>{
+    Object.keys(SOUNDS).forEach(k=>{if(SOUNDS[k].g==="Naturaleza")delete SOUNDS[k]});const nat={};m.sound.forEach(c=>{nat[c.k]={g:"Naturaleza",n:c.n,d:c.d}});
+    const rest={...SOUNDS};Object.keys(SOUNDS).forEach(k=>delete SOUNDS[k]);Object.assign(SOUNDS,nat,rest);
+    const L={};m.sound.forEach(c=>L[c.k]=c.items);return SND_FILES.list=L});return SND_FILES.loading}
 const SND={ctx:null,master:null,cur:null,nodes:null,pref:{on:true,auto:true,sound:"calm",vol:.6,v:2}};
 try{const sv=JSON.parse(localStorage.getItem("tracker90:sound")||"{}");if(sv.v===2)Object.assign(SND.pref,sv);else if(sv.sound){SND.pref.sound=sv.sound;SND.pref.auto=sv.auto!==false}}catch(e){}
 window.__SND=SND;setTimeout(()=>{window.__SND.fx={playLoopEl,buildSound}},0);
@@ -3393,7 +3435,8 @@ function noiseBuffer(ctx,kind){const len=ctx.sampleRate*8,buf=ctx.createBuffer(2
     // fundido en los bordes para que el bucle no haga clic
     const f=Math.floor(ctx.sampleRate*.05);for(let i=0;i<f;i++){const g=i/f;d[i]*=g;d[len-1-i]*=g}}
   return buf}
-function buildSound(name){const c=SND.ctx,out=c.createGain();out.gain.value=0;out.connect(SND.master);const stop=[];
+const SND_GEN=["rain","wind","water","forest","calm","pink","brown","white","bright","pulse","_vacio"];
+function buildSound(name){if(!SND_GEN.includes(name))name="forest";const c=SND.ctx,out=c.createGain();out.gain.value=0;out.connect(SND.master);const stop=[];
   const loop=(kind)=>{const s=c.createBufferSource();s.buffer=noiseBuffer(c,kind);s.loop=true;s.start();stop.push(s);return s};
   if(name==="white"||name==="pink"||name==="brown"){const s=loop(name),lp=c.createBiquadFilter();lp.type="lowpass";lp.frequency.value=name==="white"?9000:name==="pink"?7000:1200;s.connect(lp);lp.connect(out)}
   if(name==="rain"){const s=loop("pink"),hp=c.createBiquadFilter(),lp=c.createBiquadFilter(),g=c.createGain(),lfo=c.createOscillator(),lg=c.createGain();
@@ -3434,12 +3477,12 @@ function playLoopEl(n,url,onFail){const c=SND.ctx,X=8,mk=()=>{const a=new Audio(
     if(d-A.a.currentTime<=X+.3){fading=true;B=B||mk();B.a.currentTime=0;B.a.play().catch(()=>{});const t=c.currentTime;fadeIn(B,t);fadeOutP(A,t);
       setTimeout(()=>{try{A.a.pause();A.a.currentTime=0}catch(e){}const T=A;A=B;B=T;fading=false},(X+.5)*1000)}},250);
   return{stop(){alive=false;clearInterval(tick);[A,B].forEach(p=>{if(p){try{p.a.pause();p.a.removeAttribute("src");p.a.load()}catch(e){}}})}}}
-function buildSoundAny(name,pick){const c=SND.ctx,has=SND_FILES.list&&sndItems(name,SND_FILES.list).length,n=buildSound(has?"_vacio":(name==="birds"||name==="animals"?"forest":name));
+function buildSoundAny(name,pick){const c=SND.ctx,has=SND_FILES.list&&sndItems(name,SND_FILES.list).length,n=buildSound(has?"_vacio":name);
   // si hay grabaciones para este sonido, una de ellas reemplaza al sonido generado
   sndList().then(async L=>{const arr=sndItems(name,L);if(!arr.length||SND.nodes!==n)return;
     let k=(pick!=null?pick:((SND.pref.trk||{})[name]||0))%arr.length;const it=arr[k];
     try{if(SND.nodes!==n)return;const gen=n.stop.slice();
-      const lp=playLoopEl(n,it.f,()=>{if(SND.nodes===n&&!n.fell){n.fell=true;const g=buildSound(name==="birds"||name==="animals"?"forest":name);g.out.disconnect();g.out.connect(n.out);g.out.gain.setTargetAtTime(1,c.currentTime,.8);n.stop.push(...g.stop);n.real="";renderSoundUI()}});
+      const lp=playLoopEl(n,it.f,()=>{if(SND.nodes===n&&!n.fell){n.fell=true;const g=buildSound(name);g.out.disconnect();g.out.connect(n.out);g.out.gain.setTargetAtTime(1,c.currentTime,.8);n.stop.push(...g.stop);n.real="";renderSoundUI()}});
       n.stop.push(lp);n.real=it.n||"Grabación";n.idx=k;n.count=arr.length;
       gen.forEach(x=>{try{if(x.gain)x.gain.setTargetAtTime(0,c.currentTime,.8)}catch(e){}});setTimeout(()=>gen.forEach(x=>{try{x.stop()}catch(e){}}),2500);renderSoundUI()}catch(e){}})
   return n}
@@ -3585,7 +3628,7 @@ const TH={scene:"",dim:62,photo:""};
 try{Object.assign(TH,JSON.parse(localStorage.getItem("tracker90:scene")||"{}"))}catch(e){}
 /* Fondos en movimiento: clips cortos en bucle (sin sonido). Con «ahorro de datos» o «reducir movimiento» se muestra la foto fija. */
 const VF={list:null,open:null};
-async function vfList(){if(VF.list)return VF.list;try{VF.list=await fetch("fondos/lista.json",{cache:"no-cache"}).then(r=>r.ok?r.json():[])}catch(e){VF.list=[]}return VF.list}
+async function vfList(){if(VF.list)return VF.list;try{VF.list=(await loadMedia()).video||[]}catch(e){VF.list=[]}return VF.list}
 function vfItem(id){for(const c of VF.list||[])for(const it of c.items)if(it.id===id)return it;return null}
 function vfStill(){try{return matchMedia("(prefers-reduced-motion: reduce)").matches||(navigator.connection&&navigator.connection.saveData)}catch(e){return false}}
 function applyScene(){const r=document.documentElement,bg=document.getElementById("sceneBg");let vid=bg.querySelector("video");
@@ -3597,6 +3640,7 @@ function applyScene(){const r=document.documentElement,bg=document.getElementByI
     if(!vid.src.endsWith(it.v)){vid.poster=it.p;vid.src=it.v;vid.play().catch(()=>{})}return}
   if(vid)vid.remove();
   bg.style.backgroundImage=TH.scene==="foto"&&TH.photo?"url("+TH.photo+")":"url(scenes/"+TH.scene+".svg)"}
+if(TH.scene&&TH.scene.startsWith("v:")){TH.scene="";saveScene()}
 document.addEventListener("visibilitychange",()=>{const v=document.querySelector("#sceneBg video");if(!v)return;if(document.hidden)v.pause();else v.play().catch(()=>{})});
 function saveScene(){try{localStorage.setItem("tracker90:scene",JSON.stringify(TH))}catch(e){try{const t={...TH,photo:""};localStorage.setItem("tracker90:scene",JSON.stringify(t))}catch(_){}}}
 function renderThemes(){const el=document.getElementById("themeBody"),light=document.documentElement.dataset.app==="light";
@@ -3669,18 +3713,19 @@ async function renderVision(){const el=document.getElementById("vbBody");if(!el)
   h+='<p class="status" id="vbMsg" role="status">'+esc(VB.msg)+'</p></section>';
   h+='<section class="panel"><h3>Ajustes del Vision Board</h3><div class="f2">'+
     '<label class="lbl">Hora de despertar<input type="time" id="vbWake" value="'+esc(String(d.wake||"5:00").padStart(5,"0"))+'"></label>'+
-    '<label class="lbl">Voz que te declara<select id="vbVoice"><option value="">Voz del dispositivo (gratis)</option><option value="4haus"'+(d.voice==="4haus"?' selected':'')+(conn?'':' disabled')+'>Voz premium de 4haus'+(conn?'':' (pronto)')+'</option></select></label>'+
+    '<label class="lbl">Voz que te declara<span class="vsel"><select id="vbVoice">'+vbVoiceOpts(d,conn)+'</select><button type="button" class="btng" data-vvtest>Escuchar</button></span></label>'+
     '<label class="lbl">Música<select id="vbMusic"><option value="app">Sonidos de la app</option><option value="4haus"'+(d.music==="4haus"?' selected':'')+(conn?'':' disabled')+'>Biblioteca instrumental de 4haus'+(conn?'':' (pronto)')+'</option></select></label>'+
     '<label class="lbl">Velocidad de la voz<input type="range" id="vbRate" min=".7" max="1.15" step=".05" value="'+(d.rate||.92)+'"></label></div>'+
     '<p class="note" style="text-align:left">A la hora de despertar, tu primer paso del día en Inicio será «Tu despertar». La app web no puede sonar sola sin que la abras; la versión para App Store y Google Play podrá funcionar como alarma.</p></section>';
-  h+='<section class="panel"><div class="row-actions" style="justify-content:space-between"><h3 style="margin:0">Fondos en movimiento</h3><span class="status">'+(VF.list?VF.list.reduce((a,c)=>a+c.items.length,0)+' paisajes':'')+'</span></div><p class="status" style="margin:4px 0 12px">Elige una categoría y toca un paisaje para usarlo de fondo en toda la app.</p><div id="vbFondos">'+vfHTML()+'</div></section>';
-  h+='<section class="panel"><h3>Fondo de la app</h3><div class="sgrid" id="vbScenes"></div><label class="lbl">Opacidad de la ventana · <b id="dimV">'+TH.dim+' %</b><input type="range" id="dimR" min="35" max="85" value="'+TH.dim+'"'+(TH.scene?'':' disabled')+'></label>'+
-    '<div class="seg2" role="group" aria-label="Ventana"><button data-tmode="dark" aria-pressed="'+(document.documentElement.dataset.app!=="light")+'">Ventana oscura</button><button data-tmode="light" aria-pressed="'+(document.documentElement.dataset.app==="light")+'">Ventana clara</button></div></section>';
-  el.innerHTML=h;
-  const light=document.documentElement.dataset.app==="light",card=(id,label,bg)=>'<button class="scard" data-scene="'+id+'" aria-pressed="'+(TH.scene===id)+'"><span class="sthumb" style="'+bg+'"></span><span>'+label+'</span></button>';
-  document.getElementById("vbScenes").innerHTML=card("",light?"Blanco liso":"Gris oscuro liso","background:"+(light?"#fff":"#1E1F22"))+(TH.photo?card("foto","Mi sueño","background-image:url("+TH.photo+")"):"")+SCENES.map(([k,n])=>card(k,n,"background-image:url(scenes/"+k+".svg)")).join('')}
+  const bgm=d.bgMode||"dreams",hasImgs=d.dreams.some(x=>vbImg(x));
+  h+='<section class="panel"><h3>Fondo de tu tiempo de meditación</h3><p class="status" style="margin:4px 0 12px">Lo que verás mientras suenan tus declaraciones al despertar, en el ejercicio o al celebrar una meta.</p>'+
+    '<div class="seg2" role="group" aria-label="Fondo de meditación"><button data-vbgm="dreams" aria-pressed="'+(bgm==="dreams")+'">Las fotos de mis sueños</button><button data-vbgm="video" aria-pressed="'+(bgm==="video")+'">Un video de la biblioteca</button></div>'+
+    (bgm==="dreams"?'<p class="status" style="margin-top:10px">'+(hasImgs?'Se mostrarán tus sueños, uno tras otro, con un fundido suave.':'Aún no tienes fotos en tus sueños: mientras, se usará un video de la biblioteca.')+'</p>':
+      '<div class="row-actions" style="justify-content:space-between;margin:12px 0 8px"><span class="status">'+(VF.list?VF.list.reduce((a,c)=>a+c.items.length,0)+' videos · toca una categoría y elige':'')+'</span>'+(d.bgVideo?'<button class="btng" data-vbtest>Ver cómo queda</button>':'')+'</div><div id="vbFondos">'+vfHTML()+'</div>')+'</section>';
+
+  el.innerHTML=h}
 function vfHTML(){if(!VF.list){vfList().then(()=>{const el=document.getElementById("vbFondos");if(el){el.innerHTML=vfHTML();if(page==="vision")renderVision()}});return'<p class="status">Cargando paisajes…</p>'}
-  const cur=TH.scene&&TH.scene.startsWith("v:")?TH.scene.slice(2):"";
+  const cur=vbDoc().bgVideo||"";
   return'<div class="vfcats">'+VF.list.map(c=>{const op=VF.open===c.k,has=c.items.some(i=>i.id===cur);
     return'<div class="vfcat'+(op?' open':'')+'"><button class="spitem" data-vfcat="'+c.k+'" aria-expanded="'+op+'" aria-pressed="'+has+'"><span class="vfmini" style="background-image:url('+c.items[0].p+')"></span><b>'+esc(c.n)+' <em>'+c.items.length+'</em></b><span>'+(has?'En uso: '+esc((c.items.find(i=>i.id===cur)||{}).n):esc(c.items.slice(0,3).map(i=>i.n).join(" · ")))+'</span><i class="chev" aria-hidden="true"></i></button>'+
       (op?'<div class="vfgrid">'+c.items.map((it,i)=>'<button class="vfcard" data-vfondo="'+it.id+'" aria-pressed="'+(cur===it.id)+'"><span class="vfthumb" style="background-image:url('+it.p+')"><video muted loop playsinline preload="none" poster="'+it.p+'" data-src="'+it.v+'"></video><span class="tn">'+String(i+1).padStart(2,"0")+'</span></span><span class="vfn">'+esc(it.n)+'</span></button>').join('')+'</div>':'')+'</div>'}).join('')+'</div>'}
@@ -3713,7 +3758,10 @@ async function vbGenerate(it){const d=vbDoc();if(AUTH&&!user){gate("account","Cr
   it.pending=false;VB.busy=false;savePlan(VB_PATH);renderVision()}
 document.getElementById("viewVision").addEventListener("click",async e=>{const t=e.target.closest("button");if(!t)return;const d=t.dataset,doc=vbDoc();
   if(d.vfcat){VF.open=VF.open===d.vfcat?null:d.vfcat;document.getElementById("vbFondos").innerHTML=vfHTML();return}
-  if(d.vfondo){TH.scene="v:"+d.vfondo;if(TH.dim<55)TH.dim=62;saveScene();applyScene();document.getElementById("vbFondos").innerHTML=vfHTML();const s=document.getElementById("vbScenes");if(s)s.querySelectorAll(".scard").forEach(b=>b.setAttribute("aria-pressed","false"));const r=document.getElementById("dimR");if(r)r.disabled=false;setStatus("Fondo: "+((vfItem(d.vfondo)||{}).n||""));return}
+  if(d.vfondo){doc.bgVideo=d.vfondo;doc.bgMode="video";savePlan(VB_PATH);renderVision();setStatus("Fondo de meditación: "+((vfItem(d.vfondo)||{}).n||""));return}
+  if(d.vbgm){doc.bgMode=d.vbgm;savePlan(VB_PATH);if(d.vbgm==="video")vfList().then(renderVision);renderVision();return}
+  if(d.vbtest!==undefined){vbPlay("wake",true);return}
+  if(d.vvtest!==undefined){const v=vbVoiceSel();vbSpeak("Hola. Así suena "+(v?v.name:"tu voz")+" leyendo tus declaraciones.");return}
   if(d.vnew!==undefined){VB.edit={style:"real",area:"espiritu"};VB.msg="";renderVision();setTimeout(()=>document.getElementById("vfName").focus(),60);return}
   if(d.vedit){const x=doc.dreams.find(y=>y.id===d.vedit);VB.edit={...x};VB.msg="";renderVision();document.getElementById("vbForm").scrollIntoView({behavior:"smooth",block:"center"});return}
   if(d.vcancel!==undefined){VB.edit=null;renderVision();return}
@@ -3730,7 +3778,7 @@ document.getElementById("viewVision").addEventListener("change",async e=>{const 
   if(t.id==="vfRef"&&t.files[0]){vbReadForm();VB.edit.refData=await fileToData(t.files[0],1024,.85);renderVision();return}
   if(t.id==="vfOwn"&&t.files[0]){const x=vbReadForm(),data=await fileToData(t.files[0]);const it=await vbSaveDream(x,data);if(it){VB.edit=null;VB.msg="Imagen guardada en «"+it.name+"».";renderVision()}return}
   if(t.id==="vbWake"){doc.wake=t.value.replace(/^0(\d):/,"$1:");savePlan(VB_PATH);return}
-  if(t.id==="vbVoice"){doc.voice=t.value;savePlan(VB_PATH);return}
+  if(t.id==="vbVoice"){const v=(MEDIA.data&&MEDIA.data.voices||[]).find(x=>x.id===t.value);if(v&&AUTH&&tier<(+v.min_tier||0)){t.value=doc.voiceId||"";gate("plan","La voz «"+v.name+"» es parte de los planes.");return}doc.voiceId=t.value;doc.voice=v&&v.provider==="4haus"?"4haus":"";savePlan(VB_PATH);vbSpeak("Así suena tu voz de declaraciones.");return}
   if(t.id==="vbMusic"){doc.music=t.value;savePlan(VB_PATH);return}
   if(t.id==="vbRate"){doc.rate=+t.value;savePlan(VB_PATH);vbSpeak("Así suena tu voz de declaraciones.",+t.value);return}});
 document.getElementById("viewVision").addEventListener("pointerover",e=>{const c=e.target.closest(".vfcard");if(!c||vfStill())return;const v=c.querySelector("video");if(v&&!v.src){v.src=v.dataset.src}if(v)v.play().catch(()=>{})});
@@ -3738,23 +3786,40 @@ document.getElementById("viewVision").addEventListener("pointerout",e=>{const c=
 document.getElementById("viewVision").addEventListener("input",e=>{if(e.target.id==="dimR"){TH.dim=+e.target.value;document.getElementById("dimV").textContent=TH.dim+" %";document.documentElement.style.setProperty("--dim",TH.dim/100);saveScene()}});
 /* ---- Reproductor: imágenes + sonido + voz ---- */
 function vbVoiceEs(){const vs=(window.speechSynthesis&&speechSynthesis.getVoices())||[];return vs.find(v=>/es[-_](MX|US|419|PE|CO|AR)/i.test(v.lang))||vs.find(v=>/^es/i.test(v.lang))||null}
-function vbSpeak(text,rate){return new Promise(res=>{if(!window.speechSynthesis){res();return}const u=new SpeechSynthesisUtterance(text);const v=vbVoiceEs();if(v)u.voice=v;u.lang=v?v.lang:"es-ES";u.rate=rate||vbDoc().rate||.92;u.pitch=1;
-  u.onstart=()=>{if(SND.master)SND.master.gain.setTargetAtTime(SND.pref.vol*.35,SND.ctx.currentTime,.3)};u.onend=u.onerror=()=>{if(SND.master)SND.master.gain.setTargetAtTime(SND.pref.vol*.8,SND.ctx.currentTime,.6);res()};speechSynthesis.speak(u)})}
+function vbVoiceOpts(d,conn){const vs=(MEDIA.data&&MEDIA.data.voices)||[];if(!MEDIA.data)loadMedia().then(()=>{if(page==="vision")renderVision()});
+  const cur=d.voiceId||((vs.find(v=>v.default)||{}).id)||"";
+  const list=vs.length?vs:[{id:"",name:"Voz de tu celular",provider:"device",min_tier:0}];
+  return list.map(v=>{const lock=AUTH&&tier<(+v.min_tier||0),off=v.provider==="4haus"&&!conn;return'<option value="'+esc(v.id)+'"'+(v.id===cur?' selected':'')+(off?' disabled':'')+'>'+esc(v.name)+(v.gender?' · '+esc(v.gender):'')+(off?' (pronto)':lock?' · planes':'')+'</option>'}).join('')}
+function vbVoiceSel(){const d=vbDoc(),vs=(MEDIA.data&&MEDIA.data.voices)||[];return vs.find(v=>v.id===d.voiceId)||vs.find(v=>v.default)||null}
+const VOICE_CACHE=new Map();
+function vbDuck(on){if(SND.master)SND.master.gain.setTargetAtTime(SND.pref.vol*(on?.35:1),SND.ctx.currentTime,on?.3:.6)}
+async function vbSpeak(text,rate){const v=vbVoiceSel();
+  if(v&&v.provider==="4haus"&&VB.status&&VB.status.connected&&(!AUTH||tier>=(+v.min_tier||0))){
+    try{const key=v.id+"|"+text;let url=VOICE_CACHE.get(key);if(!url){const r=await vbCall({action:"voice",voice_id:v.id,text});url=r&&r.url;if(url)VOICE_CACHE.set(key,url)}
+      if(url)return await new Promise(res=>{const a=new Audio(url);a.playbackRate=Math.max(.8,Math.min(1.1,(rate||vbDoc().rate||.92)/.92));VB.voiceAudio=a;vbDuck(true);a.onended=a.onerror=()=>{vbDuck(false);VB.voiceAudio=null;res()};a.play().catch(()=>{vbDuck(false);res()})})}catch(e){}}
+  return vbSpeakDevice(text,rate)}
+function vbSpeakDevice(text,rate){return new Promise(res=>{if(!window.speechSynthesis){res();return}const u=new SpeechSynthesisUtterance(text);const v=vbVoiceEs();if(v)u.voice=v;u.lang=v?v.lang:"es-ES";u.rate=rate||vbDoc().rate||.92;u.pitch=1;
+  u.onstart=()=>vbDuck(true);u.onend=u.onerror=()=>{vbDuck(false);res()};speechSynthesis.speak(u)})}
 const EX_LINES=["Todo lo puedo en Cristo que me fortalece. Filipenses 4:13.","Mi cuerpo es templo del Espíritu Santo. Primera de Corintios 6:19.","Los que esperan en el Señor renovarán sus fuerzas. Isaías 40:31.","Corro con paciencia la carrera que tengo por delante. Hebreos 12:1.","Esfuérzate y sé valiente. Josué 1:9."];
 function vbScript(kind){const nm=onbName()||whoName()||"",d=vbDoc(),ti=Math.max(0,todayIdx()),seed=SEEDS[((ti%8)+8)%8],dc=DECL.find(x=>x.t===seed.n)||DECL[ti%DECL.length],a=getDoc(ONB_PATH).ans||{};
   const dreams=d.dreams.map(x=>x.name);
   if(kind==="wake")return["Buenos días"+(nm?", "+nm:"")+". Este es el día que hizo el Señor.","Hoy declaro: "+dc.t+"."].concat(dc.p.map(p=>p[0].replace(/\(([^)]*)\)/g,""))).concat(dreams.length?["Veo lo que Dios ha puesto en mi corazón: "+dreams.slice(0,4).join(", ")+"."]:[]).concat(["Hoy doy mi siguiente paso con fe."]);
   if(kind==="goal")return["¡Lo lograste"+(nm?", "+nm:"")+"!","Dios es fiel. Lo que empezó en ti, lo va a terminar. Filipenses 1:6."].concat(a.goal?["Tu meta: "+a.goal+". Un paso más cerca."]:[]).concat(dreams.length?["Sigue mirando: "+dreams.slice(0,3).join(", ")+"."]:[]).concat(["Dale gracias y sigue adelante."]);
   return EX_LINES.slice()}
-async function vbPlay(kind){const d=vbDoc();await vbUrls();
-  const imgs=d.dreams.map(x=>({u:vbImg(x),n:x.name})).filter(x=>x.u);if(!imgs.length)imgs.push(...["amanecer","lago","aurora","trigo"].map(k=>({u:"scenes/"+k+".svg",n:""})));
+async function vbPlay(kind,preview){const d=vbDoc();await vbUrls();await vfList();
+  const imgs=d.dreams.map(x=>({u:vbImg(x),n:x.name})).filter(x=>x.u);
+  let vid=null;if(d.bgMode==="video"||!imgs.length){vid=vfItem(d.bgVideo)||(VF.list&&VF.list[0]&&VF.list[0].items[0])||null}
+  if(!vid&&!imgs.length)imgs.push(...["amanecer","lago","aurora","trigo"].map(k=>({u:"scenes/"+k+".svg",n:""})));
   const el=document.getElementById("vbPlayer"),P=VB.player={kind,i:0,imgs,on:true,timer:null,prevSnd:{...SND.pref}};
   el.hidden=false;document.body.classList.add("focusing");
   el.innerHTML='<div class="vbstage" id="vbStage"></div><div class="vbshade"></div><div class="vbcap"><span class="eyebrow">'+({wake:"Tu despertar",exercise:"Modo ejercicio",goal:"Meta alcanzada"})[kind]+'</span><p id="vbLine"></p><b id="vbName"></b></div><div class="vbctl"><button class="iconbtn" data-vpnext aria-label="Siguiente imagen"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button><button class="btng" data-vpstop>Terminar</button></div>';
   // sonido: música de 4haus si está elegida y conectada; si no, los sonidos de la app
   SND.pref.on=true;SND.pref.auto=false;SND.pref.sound=kind==="exercise"?"pulse":kind==="goal"?"bright":"calm";applySound();
   let audio=null;if(d.music==="4haus"&&VB.status&&VB.status.connected){try{const m=await vbCall({action:"music",mood:kind,minutes:kind==="exercise"?30:5});if(m&&m.tracks&&m.tracks[0]){audio=new Audio(m.tracks[0].url);audio.loop=true;audio.volume=SND.pref.vol;SND.pref.on=false;applySound();audio.play().catch(()=>{});P.audio=audio}}catch(e){}}
-  const show=()=>{const st=document.getElementById("vbStage");if(!st||!P.on)return;const im=P.imgs[P.i%P.imgs.length];const lay=document.createElement("div");lay.className="vblayer";lay.style.backgroundImage="url("+im.u+")";st.appendChild(lay);
+  if(vid){P.vid=vid;const st=document.getElementById("vbStage");st.innerHTML='<video class="vbvideo" muted loop playsinline autoplay poster="'+esc(vid.p)+'" src="'+esc(vid.v)+'"></video>';const ve=st.firstChild;ve.play().catch(()=>{});requestAnimationFrame(()=>ve.classList.add("in"));
+    const nx=el.querySelector("[data-vpnext]");if(nx)nx.hidden=true;document.getElementById("vbName").textContent=d.dreams.length?d.dreams.slice(0,3).map(x=>x.name).join(" · "):""}
+  if(preview){document.getElementById("vbLine").textContent="Así se verá tu tiempo de meditación.";setTimeout(()=>{if(VB.player===P)vbStop()},9000);return}
+  const show=()=>{if(P.vid)return;const st=document.getElementById("vbStage");if(!st||!P.on)return;const im=P.imgs[P.i%P.imgs.length];const lay=document.createElement("div");lay.className="vblayer";lay.style.backgroundImage="url("+im.u+")";st.appendChild(lay);
     requestAnimationFrame(()=>lay.classList.add("in"));[...st.children].slice(0,-2).forEach(x=>x.remove());document.getElementById("vbName").textContent=im.n||""};
   show();P.timer=setInterval(()=>{P.i++;show()},kind==="exercise"?12000:9000);
   const lines=vbScript(kind),line=document.getElementById("vbLine");
@@ -3762,7 +3827,7 @@ async function vbPlay(kind){const d=vbDoc();await vbUrls();
     for(const l of lines){if(!P.on)return;line.classList.remove("in");void line.offsetWidth;line.textContent=l;line.classList.add("in");await vbSpeak(l);await new Promise(r=>setTimeout(r,700))}
     if(kind==="wake"&&P.on){d.lastWake=todayStr();savePlan(VB_PATH)}})()}
 function vbStop(){const P=VB.player;if(!P)return;
-  if(P.kind==="exercise"&&VB.exAct){const ti=todayIdx(),a=VB.exAct;VB.exAct=null;if(ti>=0&&ti<90&&!marked(ti,a.id)){const key=ti+"_"+a.id;state.marks={...state.marks,[key]:1};writeTracker({marks:{[key]:1}})}}P.on=false;clearInterval(P.timer);if(window.speechSynthesis)speechSynthesis.cancel();if(P.audio){P.audio.pause()}
+  if(P.kind==="exercise"&&VB.exAct){const ti=todayIdx(),a=VB.exAct;VB.exAct=null;if(ti>=0&&ti<90&&!marked(ti,a.id)){const key=ti+"_"+a.id;state.marks={...state.marks,[key]:1};writeTracker({marks:{[key]:1}})}}P.on=false;clearInterval(P.timer);if(window.speechSynthesis)speechSynthesis.cancel();if(VB.voiceAudio){VB.voiceAudio.pause();VB.voiceAudio=null;vbDuck(false)}if(P.audio){P.audio.pause()}const vv=document.querySelector("#vbStage video");if(vv)vv.pause()
   Object.assign(SND.pref,P.prevSnd);applySound();VB.player=null;const el=document.getElementById("vbPlayer");el.classList.add("leaving");setTimeout(()=>{el.hidden=true;el.classList.remove("leaving");el.innerHTML=""},400);document.body.classList.remove("focusing");if(page==="home")renderHome()}
 document.getElementById("vbPlayer").addEventListener("click",e=>{if(e.target.closest("[data-vpstop]"))vbStop();else if(e.target.closest("[data-vpnext]")&&VB.player){VB.player.i++;const st=document.getElementById("vbStage");const im=VB.player.imgs[VB.player.i%VB.player.imgs.length];const lay=document.createElement("div");lay.className="vblayer";lay.style.backgroundImage="url("+im.u+")";st.appendChild(lay);requestAnimationFrame(()=>lay.classList.add("in"));document.getElementById("vbName").textContent=im.n||""}});
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&VB.player)vbStop()});
@@ -3773,9 +3838,10 @@ const BO_NAV=[
  ["Usuarios · CRM",[["usr","Usuarios","M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM2 21v-1a6 6 0 0 1 12 0v1M17 11a3 3 0 1 0 0-6M22 21v-1a5 5 0 0 0-4-4.9"],["rev","Opiniones","M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.4 6.8 19.1l1-5.8L3.5 9.2l5.9-.9z"]]],
  ["Ventas",[["ing","Ingresos y suscripciones","M3 17l6-6 4 4 8-8M15 7h6v6"]]],
  ["Catálogo",[["prd","Productos (tienda)","M4 7l8-4 8 4v10l-8 4-8-4zM4 7l8 4 8-4M12 11v10"],["aut","Autores y contratos","M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9zM14 3v6h6M8 13h8M8 17h5"]]],
+ ["Contenido",[["snd","Sonidos","M9 18V5l12-2v13M6 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM18 19a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"],["vid","Videos de fondo","M3 6h13v12H3zM16 10l5-3v10l-5-3"],["voz","Voces","M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3zM5 11a7 7 0 0 0 14 0M12 18v3"]]],
  ["Inteligencia artificial",[["ia","Tokens y costos","M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"]]],
  ["Sistema",[["int","Configuración","M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"],["cfg","Límites y metas","M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"]]]];
-const BO_TITLE={res:"Dashboard",busca:"Buscar",usr:"Usuarios",rev:"Opiniones",ing:"Ingresos y suscripciones",prd:"Productos",aut:"Autores y contratos",ia:"Tokens y costos",int:"Configuración",cfg:"Límites y metas"};
+const BO_TITLE={snd:"Sonidos",vid:"Videos de fondo",voz:"Voces",res:"Dashboard",busca:"Buscar",usr:"Usuarios",rev:"Opiniones",ing:"Ingresos y suscripciones",prd:"Productos",aut:"Autores y contratos",ia:"Tokens y costos",int:"Configuración",cfg:"Límites y metas"};
 const boIcon=d=>'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="'+d+'"/></svg>';
 function boChrome(){const nav=document.getElementById("boNav");if(!nav)return;if(ADM._lastTab!==ADM.tab){document.getElementById("viewAdmin").classList.remove("navopen");ADM._lastTab=ADM.tab}
   nav.innerHTML=BO_NAV.map(([g,items])=>'<div class="bogrp"><span>'+esc(g)+'</span>'+items.map(([k,l,ic])=>'<button class="boitem" data-atab="'+k+'" aria-current="'+(ADM.tab===k?'page':'false')+'">'+boIcon(ic)+'<span>'+esc(l)+'</span></button>').join('')+'</div>').join('');
@@ -3878,6 +3944,103 @@ setInterval(()=>{if(!ADM.isAdm||!ADM.mfaReq||boLocked())return;if(Date.now()-ADM
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&ADM.isAdm&&ADM.mfaReq&&!boLocked()&&Date.now()-ADM.lastAct>BO_IDLE_MIN*60000){ADM.idleLock=true;ADM.lk={step:"pass"};ADM.ov=null;BK.admin=false;if(page==="admin")renderAdmin()}});
 /* Mercado Pago en Configuración */
 BO_INT.splice(3,0,{k:"mp",n:"Pagos con Mercado Pago",s:"Suscripciones y libros en dólares · aviso automático de cada cobro",v:["mercadoPago: true (config.js)","MP_ACCESS_TOKEN","MP_CURRENCY (USD)","mp-webhook (Verify JWT apagado)"],c:"Por transacción",cs:"Mercado Pago · se descuenta de cada cobro",pay:"https://www.mercadopago.com.pe/developers/panel/app"});
+
+/* ======================= v20 · Backoffice: sonidos, videos de fondo y voces ======================= */
+const MD={loaded:false,busy:false,cats:[],items:[],voices:[],open:{},msg:"",cat4h:null,sure:null};
+const MD_TIER=[[0,"Gratis"],[1,"Prueba y planes"],[3,"Solo Eagle"]];
+async function mdLoad(){MD.busy=true;try{const [c,i,v]=await Promise.all([sb.from("media_categories").select("*").order("sort"),sb.from("media_items").select("*").order("sort"),sb.from("voices").select("*").order("sort")]);
+    if(c.error)throw c.error;MD.cats=(c.data||[]).slice().sort((a,b)=>a.sort-b.sort);MD.items=(i.data||[]).slice().sort((a,b)=>a.sort-b.sort);MD.voices=(v.data||[]).slice().sort((a,b)=>a.sort-b.sort);MD.loaded=true;MD.msg=""}
+  catch(e){MD.msg=/media_categories|schema cache|does not exist/i.test(e.message||"")?"Falta correr 9-supabase-medios-voces.sql en Supabase.":"No se pudo cargar: "+(e.message||e)}
+  MD.busy=false}
+function mdChanged(){MEDIA.p=null;MEDIA.data=null;SND_FILES.list=null;SND_FILES.loading=null;VF.list=null}
+async function mdSave(table,id,patch){const {error}=await sb.from(table).update(patch).eq("id",id);if(error){setStatus("No se guardó: "+error.message);return false}
+  const arr=table==="media_categories"?MD.cats:table==="media_items"?MD.items:MD.voices;const r=arr.find(x=>x.id===id);if(r)Object.assign(r,patch);mdChanged();setStatus("Guardado");return true}
+function mdUrl(f){return mediaUrl(f)}
+function mdHTML(kind){if(!MD.loaded){if(!MD.busy)mdLoad().then(renderAdmin);return'<section class="reportcard"><p class="empty2">'+(MD.msg?esc(MD.msg):'Cargando…')+'</p></section>'}
+  const cats=MD.cats.filter(c=>c.kind===kind),its=MD.items.filter(i=>cats.some(c=>c.id===i.category_id)),vid=kind==="video";
+  let h='<section class="stats">'+tile(cats.length,"Categorías")+tile(its.length,vid?"Videos":"Sonidos")+tile(its.filter(i=>i.active).length,"Visibles en la app")+'</section>';
+  h+='<section class="reportcard"><div class="row-actions" style="justify-content:space-between"><span class="lbl" style="color:#6b6d72">'+(vid?'Videos para el tiempo de meditación (MP4 horizontal, sin sonido, 10–20 s)':'Sonidos de naturaleza (MP3 largo, 5–10 min, para que el bucle no se note)')+'</span><button class="btnw" data-mdnewcat="'+kind+'">+ Nueva categoría</button></div>'+
+    (MD.msg?'<p class="empty2">'+esc(MD.msg)+'</p>':'')+
+    cats.map((c,ci)=>{const ci2=MD.items.filter(i=>i.category_id===c.id),op=!!MD.open[c.id];
+      return'<div class="mdcat'+(c.active?'':' off')+'"><div class="mdhead"><button class="mdtog" data-mdopen="'+c.id+'" aria-expanded="'+op+'" aria-label="Ver elementos"><i class="chev"></i></button>'+
+        '<input class="ain mdname" data-mdc="'+c.id+'" data-f="name" value="'+esc(c.name)+'" aria-label="Nombre de la categoría">'+
+        '<input class="ain mddesc" data-mdc="'+c.id+'" data-f="description" value="'+esc(c.description||"")+'" placeholder="Descripción corta" aria-label="Descripción">'+
+        '<span class="mdcount">'+ci2.length+'</span>'+
+        '<label class="mdsw"><input type="checkbox" data-mdc="'+c.id+'" data-f="active"'+(c.active?' checked':'')+'> Visible</label>'+
+        '<span class="mdord"><button class="btng sm" data-mdmove="media_categories:'+c.id+':-1"'+(ci?'':' disabled')+' aria-label="Subir">↑</button><button class="btng sm" data-mdmove="media_categories:'+c.id+':1"'+(ci<cats.length-1?'':' disabled')+' aria-label="Bajar">↓</button></span>'+
+        '<button class="btng sm danger" data-mddel="media_categories:'+c.id+'">'+(MD.sure==="media_categories:"+c.id?'¿Borrar todo?':'Borrar')+'</button></div>'+
+        (op?'<div class="mditems">'+(ci2.length?'<table class="atable mdt"><thead><tr><th>#</th><th>'+(vid?'Vista':'Escuchar')+'</th><th>Nombre</th><th>Visible</th><th>Orden</th><th></th></tr></thead><tbody>'+ci2.map((it,ii)=>'<tr class="'+(it.active?'':'off')+'"><td class="num">'+String(ii+1).padStart(2,"0")+'</td><td>'+
+            (vid?'<span class="mdthumb" style="background-image:url('+esc(mdUrl(it.poster_path))+')"></span>':'<button class="btng sm" data-mdplay="'+esc(mdUrl(it.file_path))+'">▶</button>')+'</td>'+
+            '<td><input class="ain mdname" data-mdi="'+it.id+'" data-f="name" value="'+esc(it.name)+'" aria-label="Nombre"></td>'+
+            '<td><input type="checkbox" data-mdi="'+it.id+'" data-f="active"'+(it.active?' checked':'')+' aria-label="Visible"></td>'+
+            '<td><span class="mdord"><button class="btng sm" data-mdmove="media_items:'+it.id+':-1"'+(ii?'':' disabled')+' aria-label="Subir">↑</button><button class="btng sm" data-mdmove="media_items:'+it.id+':1"'+(ii<ci2.length-1?'':' disabled')+' aria-label="Bajar">↓</button></span></td>'+
+            '<td><select class="ain" data-mdi="'+it.id+'" data-f="category_id" aria-label="Mover a">'+cats.map(x=>'<option value="'+x.id+'"'+(x.id===c.id?' selected':'')+'>'+esc(x.name)+'</option>').join('')+'</select> <button class="btng sm danger" data-mddel="media_items:'+it.id+'">'+(MD.sure==="media_items:"+it.id?'¿Seguro?':'Quitar')+'</button></td></tr>').join('')+'</tbody></table>':'<p class="empty2">Esta categoría está vacía.</p>')+
+          '<label class="btnw mdup">+ Subir '+(vid?'videos (.mp4)':'sonidos (.mp3)')+'<input type="file" data-mdup="'+c.id+'" accept="'+(vid?'video/mp4':'audio/mpeg,audio/mp3,audio/*')+'" multiple hidden></label></div>':'')+'</div>'}).join('')+
+    '<p class="empty2" id="mdProg" role="status"></p></section>';
+  return h}
+function vozHTML(){if(!MD.loaded){if(!MD.busy)mdLoad().then(renderAdmin);return'<section class="reportcard"><p class="empty2">'+(MD.msg?esc(MD.msg):'Cargando…')+'</p></section>'}
+  const vs=MD.voices,conn=VB.status&&VB.status.connected;if(VB.status==null){VB.status={loading:true};vbStatus().then(renderAdmin)}
+  let h='<section class="stats">'+tile(vs.length,"Voces")+tile(vs.filter(v=>v.active).length,"Visibles para elegir")+tile(vs.filter(v=>v.provider==="4haus").length,"De 4haus Studio",conn?"Estudio conectado":"4haus aún no conectado")+'</section>';
+  h+='<section class="reportcard"><div class="row-actions" style="justify-content:space-between"><span class="lbl" style="color:#6b6d72">Voces que el usuario puede elegir para sus declaraciones</span><span><button class="btng" data-md4h'+(conn?'':' disabled title="Conecta FOURHAUS_API_URL y FOURHAUS_API_KEY en Supabase"')+'>Traer voces de 4haus</button> <button class="btnw" data-mdnewvoz>+ Agregar voz</button></span></div>'+
+    (MD.msg?'<p class="empty2">'+esc(MD.msg)+'</p>':'')+
+    '<table class="atable mdt"><thead><tr><th>Nombre</th><th>Origen</th><th>ID en 4haus</th><th>Tipo</th><th>Quién la usa</th><th>Por defecto</th><th>Visible</th><th>Orden</th><th></th></tr></thead><tbody>'+
+    vs.map((v,i)=>'<tr class="'+(v.active?'':'off')+'"><td><input class="ain mdname" data-mdv="'+v.id+'" data-f="name" value="'+esc(v.name)+'" aria-label="Nombre"><input class="ain mddesc" data-mdv="'+v.id+'" data-f="description" value="'+esc(v.description||"")+'" placeholder="Descripción" aria-label="Descripción"></td>'+
+      '<td><select class="ain" data-mdv="'+v.id+'" data-f="provider"><option value="4haus"'+(v.provider==="4haus"?' selected':'')+'>4haus Studio</option><option value="device"'+(v.provider==="device"?' selected':'')+'>Celular</option></select></td>'+
+      '<td><input class="ain" data-mdv="'+v.id+'" data-f="provider_voice_id" value="'+esc(v.provider_voice_id||"")+'"'+(v.provider==="device"?' disabled':'')+' placeholder="es-calida" aria-label="ID de la voz"></td>'+
+      '<td><select class="ain" data-mdv="'+v.id+'" data-f="gender"><option value="">—</option>'+["Mujer","Hombre"].map(g=>'<option'+(v.gender===g?' selected':'')+'>'+g+'</option>').join('')+'</select></td>'+
+      '<td><select class="ain" data-mdv="'+v.id+'" data-f="min_tier">'+MD_TIER.map(([k,l])=>'<option value="'+k+'"'+(+v.min_tier===k?' selected':'')+'>'+l+'</option>').join('')+'</select></td>'+
+      '<td><input type="radio" name="mdDef" data-mdvdef="'+v.id+'"'+(v.is_default?' checked':'')+' aria-label="Voz por defecto"></td>'+
+      '<td><input type="checkbox" data-mdv="'+v.id+'" data-f="active"'+(v.active?' checked':'')+' aria-label="Visible"></td>'+
+      '<td><span class="mdord"><button class="btng sm" data-mdmove="voices:'+v.id+':-1"'+(i?'':' disabled')+' aria-label="Subir">↑</button><button class="btng sm" data-mdmove="voices:'+v.id+':1"'+(i<vs.length-1?'':' disabled')+' aria-label="Bajar">↓</button></span></td>'+
+      '<td><button class="btng sm" data-mdvplay="'+v.id+'">Escuchar</button> <button class="btng sm danger" data-mddel="voices:'+v.id+'">'+(MD.sure==="voices:"+v.id?'¿Seguro?':'Quitar')+'</button></td></tr>').join('')+'</tbody></table>'+
+    (MD.cat4h?'<div class="mdcat4h"><span class="lbl" style="color:#6b6d72">Catálogo de 4haus Studio · '+MD.cat4h.length+' voces</span>'+admTable(["Voz","Tipo","Descripción",""],MD.cat4h.map(x=>{const have=vs.some(v=>v.provider==="4haus"&&v.provider_voice_id===x.id);
+      return'<tr><td><b>'+esc(x.name||x.id)+'</b><small> '+esc(x.id)+'</small></td><td>'+esc(x.gender||"")+'</td><td>'+esc(x.description||"")+'</td><td>'+(x.sample_url?'<button class="btng sm" data-mdplay="'+esc(x.sample_url)+'">▶</button> ':'')+(have?'<span class="status">Agregada</span>':'<button class="btnw sm" data-md4hadd="'+esc(x.id)+'">Agregar</button>')+'</td></tr>'}))+'</div>':'')+
+    '<p class="empty2">Las voces de 4haus se cobran por uso en tu cuenta de 4haus; «Quién la usa» limita qué planes pueden elegirla. La «Voz de tu celular» es gratis y funciona sin internet.</p></section>';
+  return h}
+async function mdUpload(catId,files){const c=MD.cats.find(x=>x.id===catId);if(!c)return;const vid=c.kind==="video",prog=()=>document.getElementById("mdProg");
+  let n=MD.items.filter(i=>i.category_id===catId).length,ok=0;
+  for(const f of files){const p=prog();if(p)p.textContent="Subiendo «"+f.name+"» ("+(ok+1)+" de "+files.length+")…";
+    const base=f.name.replace(/\.[^.]+$/,""),slug=base.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,40)||"archivo",stamp=Date.now().toString(36);
+    const path=(vid?"videos/":"sonidos/")+slug+"-"+stamp+(vid?".mp4":".mp3");
+    const up=await sb.storage.from("medios").upload(path,f,{contentType:f.type||(vid?"video/mp4":"audio/mpeg"),upsert:false});if(up.error){setStatus("No se subió «"+f.name+"»: "+up.error.message);continue}
+    let poster=null;if(vid){try{const jpg=await mdPoster(f);const pp="videos/"+slug+"-"+stamp+".jpg";const u2=await sb.storage.from("medios").upload(pp,jpg,{contentType:"image/jpeg"});if(!u2.error)poster=pp}catch(e){}}
+    const nice=base.replace(/^ES_/,"").replace(/_-_Epidemic_Sound$/i,"").replace(/[_-]+/g," ").trim().slice(0,60);
+    const {data,error}=await sb.from("media_items").insert({category_id:catId,name:nice||"Nuevo",file_path:path,poster_path:poster,sort:n++}).select().single();
+    if(error){setStatus("No se guardó «"+f.name+"»: "+error.message);continue}MD.items.push(data);ok++}
+  mdChanged();MD.open[catId]=true;renderAdmin();setStatus(ok+" archivo"+(ok===1?"":"s")+" agregado"+(ok===1?"":"s")+". Cambia el nombre si quieres.")}
+function mdPoster(file){return new Promise((res,rej)=>{const v=document.createElement("video"),u=URL.createObjectURL(file);v.muted=true;v.playsInline=true;v.preload="auto";v.src=u;
+  v.onloadeddata=()=>{v.currentTime=Math.min(1,(v.duration||2)/3)};v.onseeked=()=>{const c=document.createElement("canvas"),k=480/(v.videoWidth||480);c.width=480;c.height=Math.round((v.videoHeight||270)*k);c.getContext("2d").drawImage(v,0,0,c.width,c.height);c.toBlob(b=>{URL.revokeObjectURL(u);b?res(b):rej()},"image/jpeg",.8)};v.onerror=()=>{URL.revokeObjectURL(u);rej()};setTimeout(()=>rej(),15000)})}
+let mdAudio=null;
+document.getElementById("viewAdmin").addEventListener("click",async e=>{const t=e.target.closest("button");if(!t||!["snd","vid","voz"].includes(ADM.tab))return;const d=t.dataset;
+  if(d.mdopen){MD.open[d.mdopen]=!MD.open[d.mdopen];renderAdmin();return}
+  if(d.mdplay){if(mdAudio&&!mdAudio.paused&&mdAudio.dataset.u===d.mdplay){mdAudio.pause();return}if(mdAudio)mdAudio.pause();mdAudio=new Audio(d.mdplay);mdAudio.dataset.u=d.mdplay;mdAudio.play().catch(()=>setStatus("No se pudo reproducir."));return}
+  if(d.mdnewcat){const kind=d.mdnewcat,mx=Math.max(-1,...MD.cats.filter(c=>c.kind===kind).map(c=>c.sort));const {data,error}=await sb.from("media_categories").insert({kind,name:"Nueva categoría",sort:mx+1}).select().single();
+    if(error){setStatus(error.message);return}MD.cats.push(data);MD.open[data.id]=true;mdChanged();renderAdmin();setTimeout(()=>{const i=document.querySelector('[data-mdc="'+data.id+'"][data-f="name"]');if(i){i.focus();i.select()}},50);return}
+  if(d.mdnewvoz!==undefined){const mx=Math.max(-1,...MD.voices.map(v=>v.sort));const {data,error}=await sb.from("voices").insert({name:"Nueva voz",provider:"4haus",sort:mx+1,min_tier:1}).select().single();if(error){setStatus(error.message);return}MD.voices.push(data);mdChanged();renderAdmin();return}
+  if(d.md4h!==undefined){t.disabled=true;t.textContent="Consultando 4haus…";try{const r=await vbCall({action:"voices"});MD.cat4h=(r&&r.voices)||[];if(!MD.cat4h.length)setStatus("4haus no devolvió voces.")}catch(err){setStatus(err.message)}renderAdmin();return}
+  if(d.md4hadd){const x=(MD.cat4h||[]).find(y=>y.id===d.md4hadd);if(!x)return;const mx=Math.max(-1,...MD.voices.map(v=>v.sort));
+    const {data,error}=await sb.from("voices").insert({name:x.name||x.id,provider:"4haus",provider_voice_id:x.id,gender:/f|mujer|female/i.test(x.gender||"")?"Mujer":/m|hombre|male/i.test(x.gender||"")?"Hombre":"",description:x.description||"",sample_url:x.sample_url||null,sort:mx+1,min_tier:1}).select().single();
+    if(error){setStatus(error.message);return}MD.voices.push(data);mdChanged();renderAdmin();return}
+  if(d.mdvplay){const v=MD.voices.find(x=>x.id===d.mdvplay);if(!v)return;if(v.sample_url){if(mdAudio)mdAudio.pause();mdAudio=new Audio(v.sample_url);mdAudio.play().catch(()=>{});return}
+    if(v.provider==="device"){vbSpeakDevice("Hola. Así suena la voz de tu celular leyendo tus declaraciones.");return}
+    try{const r=await vbCall({action:"voice",voice_id:v.id,text:"Hola. Así sueno leyendo tus declaraciones."});if(r&&r.url){if(mdAudio)mdAudio.pause();mdAudio=new Audio(r.url);mdAudio.play()}}catch(err){setStatus(err.message)}return}
+  if(d.mdmove){const [table,id,dir]=d.mdmove.split(":"),arr=table==="media_categories"?MD.cats:table==="media_items"?MD.items:MD.voices,row=arr.find(x=>x.id===id);if(!row)return;
+    const sib=arr.filter(x=>table==="media_categories"?x.kind===row.kind:table==="media_items"?x.category_id===row.category_id:true).sort((a,b)=>a.sort-b.sort),i=sib.indexOf(row),j=i+(+dir);if(j<0||j>=sib.length)return;
+    [sib[i],sib[j]]=[sib[j],sib[i]];await Promise.all(sib.map((x,k)=>x.sort===k?null:sb.from(table).update({sort:k}).eq("id",x.id).then(()=>{x.sort=k})));arr.sort((a,b)=>a.sort-b.sort);mdChanged();renderAdmin();return}
+  if(d.mddel){if(MD.sure!==d.mddel){MD.sure=d.mddel;renderAdmin();setTimeout(()=>{if(MD.sure===d.mddel){MD.sure=null;if(["snd","vid","voz"].includes(ADM.tab))renderAdmin()}},4000);return}
+    MD.sure=null;const [table,id]=d.mddel.split(":");const arr=table==="media_categories"?MD.cats:table==="media_items"?MD.items:MD.voices,row=arr.find(x=>x.id===id);
+    const paths=table==="media_items"&&row?[row.file_path,row.poster_path]:table==="media_categories"?MD.items.filter(i=>i.category_id===id).flatMap(i=>[i.file_path,i.poster_path]):[];
+    const {error}=await sb.from(table).delete().eq("id",id);if(error){setStatus(error.message);return}
+    const own=paths.filter(p=>p&&!/^(https?:|sonidos\/|fondos\/)/.test(p));if(own.length)await sb.storage.from("medios").remove(own);
+    if(table==="media_categories"){MD.cats=MD.cats.filter(x=>x.id!==id);MD.items=MD.items.filter(x=>x.category_id!==id)}else if(table==="media_items")MD.items=MD.items.filter(x=>x.id!==id);else MD.voices=MD.voices.filter(x=>x.id!==id);
+    mdChanged();renderAdmin();setStatus("Eliminado");return}});
+document.getElementById("viewAdmin").addEventListener("change",async e=>{const t=e.target;if(!["snd","vid","voz"].includes(ADM.tab))return;const d=t.dataset;
+  const val=t.type==="checkbox"?t.checked:d.f==="min_tier"?+t.value:t.value.trim();
+  if(d.mdup){const fs=[...t.files];t.value="";if(fs.length)mdUpload(d.mdup,fs);return}
+  if(d.mdc){if(d.f==="name"&&!val){t.value=(MD.cats.find(x=>x.id===d.mdc)||{}).name||"";return}await mdSave("media_categories",d.mdc,{[d.f]:val});if(d.f==="active")renderAdmin();return}
+  if(d.mdi){if(d.f==="name"&&!val)return;await mdSave("media_items",d.mdi,{[d.f]:val});if(d.f!=="name")renderAdmin();return}
+  if(d.mdv){if(d.f==="name"&&!val)return;await mdSave("voices",d.mdv,{[d.f]:val});if(d.f==="provider"||d.f==="active")renderAdmin();return}
+  if(d.mdvdef){await Promise.all(MD.voices.filter(v=>v.is_default&&v.id!==d.mdvdef).map(v=>mdSave("voices",v.id,{is_default:false})));await mdSave("voices",d.mdvdef,{is_default:true});renderAdmin();return}});
 
 /* ======================= TIENDA (tipo Amazon), OPINIONES Y PORTADA ======================= */
 const ST={books:[],mine:[],orders:[],reviews:[],rating:{},breviews:{},loaded:false,view:null,q:"",cat:""};
