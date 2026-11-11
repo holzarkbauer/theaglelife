@@ -1092,6 +1092,9 @@ body > .rdbox.rd-rot .rdtools{position:sticky;top:0;z-index:5}
 #viewAdmin .mdt td:first-child .ain{min-width:170px;max-width:220px}
 .mdt{display:block;overflow-x:auto}
 #viewAdmin .btng.danger{color:#B42318}
+.mcontact{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12.5px;padding:10px 4px 2px;border-top:1px solid rgba(127,127,127,.2);margin-top:8px}
+.mcontact a{color:inherit;opacity:.75;text-decoration:none}.mcontact a:hover{opacity:1;text-decoration:underline}
+.lrdl{display:grid;grid-template-columns:170px 1fr;gap:6px 14px;font-size:13.5px;margin:4px 0 12px}.lrdl dt{color:#6b6d72}.lrdl dd{margin:0;white-space:pre-wrap}
 </style>
 
 <div id="sceneBg" aria-hidden="true"></div>
@@ -1126,6 +1129,7 @@ body > .rdbox.rd-rot .rdtools{position:sticky;top:0;z-index:5}
       <span class="status" id="status">Cargando…</span>
       <button class="thbtn" id="themeBtn" aria-label="Cambiar fondo: claro u oscuro" title="Cambiar fondo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/></svg></button>
     </div>
+    <div class="mcontact"><a href="mailto:admin@theaglelife.com">Contacto</a><a href="https://www.instagram.com/josetrujillo_oficial/" target="_blank" rel="noopener">Instagram</a><a href="https://www.facebook.com/share/1Ebj43HiKT/?mibextid=wwXIfr" target="_blank" rel="noopener">Facebook</a><a href="/libro-de-reclamaciones/" target="_blank" rel="noopener">Libro de Reclamaciones</a></div>
   </aside>
 
   <!-- ===================== ACCESO ===================== -->
@@ -3045,6 +3049,7 @@ function renderAdmin(){
   if(ADM.tab==="aut"){const apps=X.author_apps||[];
     h+='<section class="reportcard"><span class="lbl" style="color:#6b6d72">Solicitudes de autores y editoriales · contrato '+esc(TERMS_V)+'</span>'+admTable(["Fecha","Nombre","Organización","Correo","Títulos","% autor","Firma","Estado"],apps.map(a=>'<tr><td>'+fdate(a.created_at)+'</td><td><b>'+esc(a.full_name)+'</b><small> '+esc(a.role||"")+'</small></td><td>'+esc(a.organization||"—")+'</td><td><a href="mailto:'+esc(a.email)+'?subject='+encodeURIComponent("Tu acuerdo de distribución · Semillas de Identidad")+'">'+esc(a.email)+'</a></td><td>'+esc(a.book_titles).replace(/\n/g,"<br>")+'</td><td style="text-align:right;white-space:nowrap">'+a.author_pct+' %</td><td>'+esc(a.signature)+(a.rights_holder?' ✓':'')+'</td><td><select data-apst="'+a.id+'" aria-label="Estado"><option value="pending"'+(a.status==="pending"?' selected':'')+'>Por revisar</option><option value="approved"'+(a.status==="approved"?' selected':'')+'>Aprobado</option><option value="rejected"'+(a.status==="rejected"?' selected':'')+'>Rechazado</option></select></td></tr>'))+
       '<p class="empty2">Al aprobar, publica el título desde Tienda → Administrador (pública o privada) y envía al autor la copia del acuerdo por correo.</p></section>'}
+  if(ADM.tab==="lr")h+=lrHTML();
   if(ADM.tab==="snd")h+=mdHTML("sound");
   if(ADM.tab==="vid")h+=mdHTML("video");
   if(ADM.tab==="voz")h+=vozHTML();
@@ -3844,10 +3849,11 @@ const BO_NAV=[
  ["Usuarios · CRM",[["usr","Usuarios","M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM2 21v-1a6 6 0 0 1 12 0v1M17 11a3 3 0 1 0 0-6M22 21v-1a5 5 0 0 0-4-4.9"],["rev","Opiniones","M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.4 6.8 19.1l1-5.8L3.5 9.2l5.9-.9z"]]],
  ["Ventas",[["ing","Ingresos y suscripciones","M3 17l6-6 4 4 8-8M15 7h6v6"]]],
  ["Catálogo",[["prd","Productos (tienda)","M4 7l8-4 8 4v10l-8 4-8-4zM4 7l8 4 8-4M12 11v10"],["aut","Autores y contratos","M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9zM14 3v6h6M8 13h8M8 17h5"]]],
+ ["Atención",[["lr","Libro de Reclamaciones","M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2zM4 19V5M9 8h6M9 12h4"]]],
  ["Contenido",[["snd","Sonidos","M9 18V5l12-2v13M6 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM18 19a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"],["vid","Videos de fondo","M3 6h13v12H3zM16 10l5-3v10l-5-3"],["voz","Voces","M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3zM5 11a7 7 0 0 0 14 0M12 18v3"]]],
  ["Inteligencia artificial",[["ia","Tokens y costos","M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"]]],
  ["Sistema",[["int","Configuración","M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"],["cfg","Límites y metas","M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"]]]];
-const BO_TITLE={snd:"Sonidos",vid:"Videos de fondo",voz:"Voces",res:"Dashboard",busca:"Buscar",usr:"Usuarios",rev:"Opiniones",ing:"Ingresos y suscripciones",prd:"Productos",aut:"Autores y contratos",ia:"Tokens y costos",int:"Configuración",cfg:"Límites y metas"};
+const BO_TITLE={lr:"Libro de Reclamaciones",snd:"Sonidos",vid:"Videos de fondo",voz:"Voces",res:"Dashboard",busca:"Buscar",usr:"Usuarios",rev:"Opiniones",ing:"Ingresos y suscripciones",prd:"Productos",aut:"Autores y contratos",ia:"Tokens y costos",int:"Configuración",cfg:"Límites y metas"};
 const boIcon=d=>'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="'+d+'"/></svg>';
 function boChrome(){const nav=document.getElementById("boNav");if(!nav)return;if(ADM._lastTab!==ADM.tab){document.getElementById("viewAdmin").classList.remove("navopen");ADM._lastTab=ADM.tab}
   nav.innerHTML=BO_NAV.map(([g,items])=>'<div class="bogrp"><span>'+esc(g)+'</span>'+items.map(([k,l,ic])=>'<button class="boitem" data-atab="'+k+'" aria-current="'+(ADM.tab===k?'page':'false')+'">'+boIcon(ic)+'<span>'+esc(l)+'</span></button>').join('')+'</div>').join('');
@@ -4047,6 +4053,29 @@ document.getElementById("viewAdmin").addEventListener("change",async e=>{const t
   if(d.mdi){if(d.f==="name"&&!val)return;await mdSave("media_items",d.mdi,{[d.f]:val});if(d.f!=="name")renderAdmin();return}
   if(d.mdv){if(d.f==="name"&&!val)return;await mdSave("voices",d.mdv,{[d.f]:val});if(d.f==="provider"||d.f==="active")renderAdmin();return}
   if(d.mdvdef){await Promise.all(MD.voices.filter(v=>v.is_default&&v.id!==d.mdvdef).map(v=>mdSave("voices",v.id,{is_default:false})));await mdSave("voices",d.mdvdef,{is_default:true});renderAdmin();return}});
+
+/* ======================= v23 · Backoffice: Libro de Reclamaciones ======================= */
+const LR={rows:null,busy:false,msg:"",open:null};
+async function lrLoad(){LR.busy=true;const {data,error}=await sb.from("reclamos").select("*").order("created_at",{ascending:false}).limit(500);
+  LR.busy=false;if(error){LR.msg=/reclamos|schema cache|does not exist/i.test(error.message)?"Falta correr 10-supabase-libro-reclamaciones.sql en Supabase.":error.message;LR.rows=[];return}LR.rows=data||[];LR.msg=""}
+function lrBizDays(from){let d=new Date(from),n=0;while(n<15){d.setDate(d.getDate()+1);const w=d.getDay();if(w&&w<6)n++}return d}
+function lrHTML(){if(!LR.rows){if(!LR.busy)lrLoad().then(renderAdmin);return'<section class="reportcard"><p class="empty2">Cargando…</p></section>'}
+  const R=LR.rows,pend=R.filter(r=>r.estado!=="respondido"),late=pend.filter(r=>lrBizDays(r.created_at)<new Date());
+  let h='<section class="stats">'+tile(R.length,"Hojas registradas")+tile(pend.length,"Por responder")+tile(late.length,"Fuera de plazo",late.length?"Plazo: 15 días hábiles":"Todo al día")+'</section>';
+  h+='<section class="reportcard"><div class="row-actions" style="justify-content:space-between"><span class="lbl" style="color:#6b6d72">Responde a cada consumidor por correo en máximo 15 días hábiles y marca la hoja como respondida.</span><a class="btng" href="/libro-de-reclamaciones/" target="_blank" rel="noopener">Ver formulario público</a></div>'+
+    (LR.msg?'<p class="empty2">'+esc(LR.msg)+'</p>':'')+
+    (R.length?admTable(["Código","Fecha","Tipo","Consumidor","Vence","Estado",""],R.map(r=>{const v=lrBizDays(r.created_at),lt=r.estado!=="respondido"&&v<new Date();
+      return'<tr><td><b>'+esc(r.codigo)+'</b></td><td>'+new Date(r.created_at).toLocaleDateString("es-PE")+'</td><td>'+(r.tipo==="queja"?"Queja":"Reclamo")+'</td><td>'+esc(r.nombre)+'<small> '+esc(r.email)+'</small></td><td'+(lt?' style="color:#B42318;font-weight:700"':'')+'>'+v.toLocaleDateString("es-PE")+'</td>'+
+        '<td><select class="ain" data-lrest="'+r.id+'">'+[["nuevo","Nuevo"],["en_proceso","En proceso"],["respondido","Respondido"]].map(([k,l])=>'<option value="'+k+'"'+(r.estado===k?' selected':'')+'>'+l+'</option>').join('')+'</select></td><td><button class="btng sm" data-lropen="'+r.id+'">'+(LR.open===r.id?'Cerrar':'Ver')+'</button></td></tr>'+
+        (LR.open===r.id?'<tr><td colspan="7"><dl class="lrdl"><dt>Documento</dt><dd>'+esc(r.doc_tipo+" "+r.doc_num)+'</dd><dt>Domicilio · teléfono</dt><dd>'+esc((r.domicilio||"—")+" · "+(r.telefono||"—"))+'</dd>'+(r.menor?'<dt>Apoderado</dt><dd>'+esc(r.apoderado)+'</dd>':'')+
+          '<dt>Bien contratado</dt><dd>'+esc((r.bien==="producto"?"Producto":"Servicio")+(r.descripcion?" · "+r.descripcion:"")+(r.monto?" · "+r.monto:""))+'</dd><dt>Detalle</dt><dd>'+esc(r.detalle)+'</dd><dt>Pedido</dt><dd>'+esc(r.pedido)+'</dd></dl>'+
+          '<label class="lbl" style="color:#6b6d72">Respuesta del proveedor (queda registrada)<textarea class="ain" data-lrresp="'+r.id+'" rows="4" style="max-width:none;width:100%">'+esc(r.respuesta||"")+'</textarea></label>'+
+          '<div class="row-actions"><a class="btnw sm" href="mailto:'+esc(r.email)+'?subject='+encodeURIComponent("Respuesta a tu "+(r.tipo==="queja"?"queja":"reclamo")+" "+r.codigo+" · The Eagle Life")+'&body='+encodeURIComponent((r.respuesta||"")+"\n\n— The Eagle Life · admin@theaglelife.com")+'">Responder por correo</a>'+(r.respondido_at?'<span class="status">Respondido el '+new Date(r.respondido_at).toLocaleDateString("es-PE")+'</span>':'')+'</div></td></tr>':'')})):'<p class="empty2">Aún no hay hojas registradas.</p>')+'</section>';
+  return h}
+document.getElementById("viewAdmin").addEventListener("click",e=>{const t=e.target.closest("[data-lropen]");if(!t||ADM.tab!=="lr")return;const id=+t.dataset.lropen;LR.open=LR.open===id?null:id;renderAdmin()});
+document.getElementById("viewAdmin").addEventListener("change",async e=>{const t=e.target;if(ADM.tab!=="lr")return;
+  if(t.dataset.lrest){const id=+t.dataset.lrest,patch={estado:t.value};if(t.value==="respondido")patch.respondido_at=new Date().toISOString();const {error}=await sb.from("reclamos").update(patch).eq("id",id);if(error){setStatus(error.message);return}Object.assign(LR.rows.find(r=>r.id===id)||{},patch);setStatus("Estado guardado");renderAdmin();return}
+  if(t.dataset.lrresp){const id=+t.dataset.lrresp,patch={respuesta:t.value.trim()};const {error}=await sb.from("reclamos").update(patch).eq("id",id);if(error){setStatus(error.message);return}Object.assign(LR.rows.find(r=>r.id===id)||{},patch);setStatus("Respuesta guardada");renderAdmin()}});
 
 /* ======================= TIENDA (tipo Amazon), OPINIONES Y PORTADA ======================= */
 const ST={books:[],mine:[],orders:[],reviews:[],rating:{},breviews:{},loaded:false,view:null,q:"",cat:""};
