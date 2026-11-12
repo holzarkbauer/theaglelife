@@ -1095,6 +1095,18 @@ body > .rdbox.rd-rot .rdtools{position:sticky;top:0;z-index:5}
 .mcontact{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12.5px;padding:10px 4px 2px;border-top:1px solid rgba(127,127,127,.2);margin-top:8px}
 .mcontact a{color:inherit;opacity:.75;text-decoration:none}.mcontact a:hover{opacity:1;text-decoration:underline}
 .lrdl{display:grid;grid-template-columns:170px 1fr;gap:6px 14px;font-size:13.5px;margin:4px 0 12px}.lrdl dt{color:#6b6d72}.lrdl dd{margin:0;white-space:pre-wrap}
+#offBar{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:400;max-width:min(560px,calc(100% - 32px));padding:10px 16px;border-radius:999px;background:#2F4A3A;color:#fff;font-size:13px;box-shadow:0 16px 30px -16px rgba(0,0,0,.7);text-align:center}
+#offBar[hidden]{display:none}
+.offpanel .offrows{display:grid;gap:8px}
+.offrow{display:grid;grid-template-columns:28px 1fr auto;gap:10px;align-items:center;padding:10px 12px;border-radius:14px;background:rgba(127,127,127,.07)}
+.offrow b{display:block;font-size:14px}.offrow small{opacity:.7;font-size:12.5px;line-height:1.4}
+.ofic{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;background:rgba(127,127,127,.15)}
+.offrow .ofic:not(:empty){background:var(--lime);color:#151515}
+.offok{font-style:normal;color:var(--lime);font-weight:600}
+@media (max-width:560px){.offrow{grid-template-columns:28px 1fr}.offrow>button,.offrow>.row-actions{grid-column:2}}
+.btnpdf{display:inline-flex;align-items:center;gap:6px}
+.msgpdf{display:flex;align-items:center;gap:5px;margin-top:8px;font:inherit;font-size:12px;font-weight:600;padding:5px 10px;border-radius:999px;border:0;background:rgba(127,127,127,.14);color:inherit;cursor:pointer}
+.msgpdf svg,.btnpdf svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linejoin:round}
 </style>
 
 <div id="sceneBg" aria-hidden="true"></div>
@@ -1275,13 +1287,14 @@ body > .rdbox.rd-rot .rdtools{position:sticky;top:0;z-index:5}
       <p class="sub">Tus libros de estudio · subraya, busca y anota con Claude</p>
     </div>
     <div id="libHome" style="display:flex;flex-direction:column;gap:14px">
+      <section class="panel offpanel" id="offPanel"></section>
       <section class="panel">
         <div class="bibh"><h3>Mis libros</h3><span class="status" id="libCount"></span></div>
         <div id="libMine" class="libgrid"></div>
         <div id="libUp" class="row-actions">
-          <label class="btnw" for="pdfIn" style="display:inline-flex;align-items:center;cursor:pointer">Subir un PDF</label>
-          <input type="file" id="pdfIn" accept="application/pdf,.pdf" hidden>
-          <span class="status">Desde tu computadora, Drive, iCloud o cualquier app de PDF. Se convierte en texto para subrayar, buscar y anotar.</span>
+          <label class="btnw" for="pdfIn" style="display:inline-flex;align-items:center;cursor:pointer">Subir un libro (PDF o EPUB)</label>
+          <input type="file" id="pdfIn" accept="application/pdf,.pdf,application/epub+zip,.epub" hidden>
+          <span class="status">Desde Archivos de tu iPhone, iCloud, Drive o tu computadora. Se convierte en texto para subrayar, buscar y anotar. Los libros comprados en Apple Books tienen protección y no se pueden importar.</span>
         </div>
         <div id="pdfForm" class="pv" hidden></div>
         <p class="err" id="libErr" hidden></p>
@@ -1448,6 +1461,7 @@ body > .rdbox.rd-rot .rdtools{position:sticky;top:0;z-index:5}
         <div class="when" id="when">–</div>
         <button class="ib" id="next" aria-label="Siguiente">›</button>
         <button class="tab" id="goToday">Hoy</button>
+        <button class="tab btnpdf" id="planPdf" aria-label="Guardar el plan como PDF o imprimirlo">PDF</button>
       </div>
     </div>
     <div id="planBody" style="display:flex;flex-direction:column;gap:14px"></div>
@@ -1714,7 +1728,7 @@ function watch(path){
     if(timers[path])return; // a local edit is waiting to be saved: keep it
     if(snap.exists)docs[path]=JSON.parse(JSON.stringify(snap.data()));
     onDocChange(path,snap.exists,first);first=false;
-  },e=>setStatus("Sin conexión con tus datos: "+errMsg(e)));
+  },e=>setStatus(isOffline()?"Sin internet: usando lo guardado en este celular":"Sin conexión con tus datos: "+errMsg(e)));
 }
 function onDocChange(path,exists,first){
   const ae=document.activeElement,typing=ae&&/INPUT|TEXTAREA|SELECT/.test(ae.tagName);
@@ -1733,7 +1747,7 @@ function savePlan(path){
   timers[path]=setTimeout(async()=>{
     timers[path]=null;
     const data=docs[path];
-    if(db){try{await db.doc(path).set(data);setStatus("Guardado en la nube")}catch(e){setStatus("No se pudo guardar: "+errMsg(e))}}
+    if(db){try{await db.doc(path).set(data);setStatus("Guardado en la nube")}catch(e){setStatus(isOffline()||/offline|fetch|network/i.test(String(e&&e.message))?"Sin internet: guardado en este celular":"No se pudo guardar: "+errMsg(e))}}
     else{try{localStorage.setItem("rpm:"+path,JSON.stringify(data))}catch(e){}setStatus("Guardado en este dispositivo")}
   },600);
 }
@@ -2079,7 +2093,9 @@ Qué averiguas, más o menos en este orden:
 
 Si una respuesta es vaga, pide un número, una fecha o un ejemplo. No inventes datos. No prometas resultados económicos ni uses lenguaje de "evangelio de la prosperidad". No des consejos médicos, legales ni financieros específicos. Si la persona pide algo ajeno a su plan, redirígela con amabilidad.
 
-Cuando tengas suficiente información (normalmente de 7 a 10 respuestas), resume en 5 viñetas cortas lo que entendiste y termina exactamente con: Si está bien, pulsa «Generar mi plan». Si quiere cambiar algo, ajústalo y vuelve a resumir.`;
+Cuando tengas suficiente información (normalmente de 7 a 10 respuestas), resume en 5 viñetas cortas lo que entendiste y termina exactamente con: Si está bien, pulsa «Generar mi plan». Si quiere cambiar algo, ajústalo y vuelve a resumir.
+
+Si la persona pide imprimir, descargar o un PDF de su plan: escríbelo completo y ordenado (títulos, viñetas, fechas) y dile que toque el botón «PDF» debajo de tu respuesta, o el botón «PDF» de la página Plan. Nunca digas que no puedes generar PDF.`;
 const COACH_PLAN=`Eres el planificador de la app "The Eagle Life". Con la conversación entre el coach y la persona, crea su plan de 90 días con el método RPM de Tony Robbins (Resultado → Propósito → Plan de acción masiva).
 
 Responde SOLO con un objeto JSON válido, sin markdown y sin texto antes ni después, con esta forma:
@@ -2205,7 +2221,7 @@ function renderCoach(){
   const c=getDoc(CHAT_PATH),msgs=c.msgs||[];
   let h='';
   if(!msgs.length)h+='<div class="msg a">'+esc(greeting())+'</div>';
-  msgs.forEach(m=>{if(!m.hide)h+='<div class="msg '+(m.role==="user"?'u':'a')+'">'+esc(m.content)+'</div>'});
+  msgs.forEach((m,i)=>{if(!m.hide)h+='<div class="msg '+(m.role==="user"?'u':'a')+'">'+esc(m.content)+(m.role!=="user"&&String(m.content).length>160?'<button class="msgpdf" data-pdfmsg="co:'+i+'" aria-label="Guardar como PDF o imprimir">'+PDF_IC+'PDF</button>':'')+'</div>'});
   if(coachBusy)h+='<div class="msg a wait">'+esc(coachBusy)+'</div>';
   chatLog.innerHTML=h;chatLog.scrollTop=chatLog.scrollHeight;
   const n=userTurns(c);
@@ -2609,15 +2625,17 @@ const bookLimit=()=>[1,2,5,Infinity][Math.min(3,Math.max(0,tier))];
 function libErr(m){const e=document.getElementById("libErr");e.hidden=!m;e.innerHTML=m||""}
 async function loadLib(){if(!AUTH||!sb||!user)return;
   try{const [a,b,c]=await Promise.all([sb.from("user_books").select("id,title,author,pages,created_at").order("created_at"),sb.from("library_books").select("id,title,author,descr,kind,lang,pages").order("created_at",{ascending:false}),sb.rpc("is_admin")]);
-    if(a.error)throw a.error;BK.mine=a.data||[];BK.cat=b.data||[];BK.admin=!!c.data;BK.loaded=true}
-  catch(e){libErr("No se pudo cargar la biblioteca: "+esc(errMsg(e))+". ¿Ya corriste supabase-planes.sql?")}
+    if(a.error)throw a.error;BK.mine=a.data||[];BK.cat=b.data||[];BK.admin=!!c.data;BK.loaded=true;try{localStorage.setItem("tracker90:lib:"+user.id,JSON.stringify({mine:BK.mine,cat:BK.cat}))}catch(e){}}
+  catch(e){let c=null;try{c=JSON.parse(localStorage.getItem("tracker90:lib:"+user.id)||"null")}catch(_){}
+    if(c){BK.mine=c.mine||[];BK.cat=c.cat||[];BK.loaded=true;if(isOffline())libErr("Sin internet: puedes leer los libros marcados «En tu celular».")}
+    else libErr("No se pudo cargar la biblioteca: "+esc(errMsg(e))+(isOffline()?"":". ¿Ya corriste supabase-planes.sql?"))}
   renderLib()}
-function renderLib(){
+function renderLib(){renderOffPanel();
   const home=document.getElementById("libHome"),bb=document.getElementById("bookBox");
   home.hidden=!!BK.cur;bb.hidden=!BK.cur;if(BK.cur){renderBookPage();return}
   if(!AUTH){document.getElementById("libMine").innerHTML='<p class="note" style="text-align:left">La biblioteca y la subida de PDF funcionan en theaglelife.com/app con tu cuenta.</p>';document.getElementById("libUp").hidden=true;document.getElementById("libCat").innerHTML="";return}
   const lim=bookLimit();document.getElementById("libCount").textContent=BK.mine.length+" de "+(lim===Infinity?"∞":lim)+" libros de tu plan";
-  document.getElementById("libMine").innerHTML=BK.mine.length?BK.mine.map(b=>'<div class="bookcard"><b>'+esc(b.title)+'</b><span>'+esc(b.author||"")+(b.pages?' · '+b.pages+' págs.':'')+'</span><div class="row-actions"><button class="btnw" data-open="u.'+b.id+'">Leer</button><button class="btng" data-del="'+b.id+'">Quitar</button></div></div>').join(''):'<p class="note" style="text-align:left">Aún no subes libros.</p>';
+  document.getElementById("libMine").innerHTML=BK.mine.length?BK.mine.map(b=>'<div class="bookcard"><b>'+esc(b.title)+'</b><span>'+esc(b.author||"")+(b.pages?' · '+b.pages+' págs.':'')+(OFFB.has("u",b.id)?' · <em class="offok">En tu celular</em>':'')+'</span><div class="row-actions"><button class="btnw" data-open="u.'+b.id+'">Leer</button><button class="btng" data-del="'+b.id+'">Quitar</button></div></div>').join(''):'<p class="note" style="text-align:left">Aún no subes libros.</p>';
   const cat=BK.cat;
   document.getElementById("libCatNote").textContent=tier>=2||BK.admin?"Incluida en tu plan":"Disponible con el plan Semillas";
   document.getElementById("libCat").innerHTML=cat.length?cat.map(b=>'<div class="bookcard"><span class="lockchip">'+(b.kind==="clasico"?"Clásico":"The EAGLE LIFE")+'</span><b>'+esc(b.title)+'</b><span>'+esc(b.author||"")+'</span>'+(b.descr?'<span>'+esc(b.descr)+'</span>':'')+'<div class="row-actions">'+(tier>=2||BK.admin?'<button class="btnw" data-open="l.'+b.id+'">Leer</button>':'<button class="btng" data-upg="semillas">🔒 Desbloquear con Semillas</button>')+(BK.admin?'<button class="btng" data-ldel="'+b.id+'">Quitar</button>':'')+'</div></div>').join(''):'<p class="note" style="text-align:left">Pronto habrá libros aquí.</p>';
@@ -2644,12 +2662,13 @@ let pendingPdf=null;
 document.getElementById("pdfIn").addEventListener("change",e=>{const f=e.target.files[0];e.target.value="";if(!f)return;libErr("");
   if(BK.mine.length>=bookLimit()){libErr('Tu plan permite '+bookLimit()+' libro'+(bookLimit()===1?'':'s')+' propio'+(bookLimit()===1?'':'s')+'. <button class="btnw" data-upg="up" style="margin-left:6px">Ver planes</button>');return}
   pendingPdf=f;const fm=document.getElementById("pdfForm");fm.hidden=false;
-  fm.innerHTML='<div class="f2"><label class="lbl">Título<input id="pdfTitle" value="'+esc(f.name.replace(/\.pdf$/i,"").replace(/[_-]+/g," "))+'"></label><label class="lbl">Autor (opcional)<input id="pdfAuthor"></label></div><div class="row-actions"><button class="btnw" id="pdfGo">Convertir y guardar</button><button class="btng" id="pdfCancel">Cancelar</button><span class="status" id="pdfMsg"></span></div>'});
+  fm.innerHTML='<div class="f2"><label class="lbl">Título<input id="pdfTitle" value="'+esc(f.name.replace(/\.(pdf|epub)$/i,"").replace(/[_-]+/g," "))+'"></label><label class="lbl">Autor (opcional)<input id="pdfAuthor"></label></div><div class="row-actions"><button class="btnw" id="pdfGo">Convertir y guardar</button><button class="btng" id="pdfCancel">Cancelar</button><span class="status" id="pdfMsg"></span></div>'});
 document.getElementById("viewLib").addEventListener("click",async e=>{const t=e.target.closest("button");if(!t)return;
   if(t.id==="pdfCancel"){pendingPdf=null;document.getElementById("pdfForm").hidden=true;return}
   if(t.id==="pdfGo"&&pendingPdf){t.disabled=true;const msg=document.getElementById("pdfMsg");
-    try{const book=await pdfToBook(pendingPdf,(n,N)=>{msg.textContent="Leyendo página "+n+" de "+N+"…"});
-      const title=document.getElementById("pdfTitle").value.trim()||book.title||"Mi libro",author=document.getElementById("pdfAuthor").value.trim()||book.author;
+    try{const book=await (/\.epub$/i.test(pendingPdf.name)||pendingPdf.type==="application/epub+zip"?epubToBook:pdfToBook)(pendingPdf,(n,N)=>{msg.textContent="Leyendo "+n+" de "+N+"…"});
+      const tIn=document.getElementById("pdfTitle").value.trim(),tDef=pendingPdf.name.replace(/\.(pdf|epub)$/i,"").replace(/[_-]+/g," ");
+      const title=(tIn&&!(tIn===tDef&&book.title)?tIn:book.title)||tIn||"Mi libro",author=document.getElementById("pdfAuthor").value.trim()||book.author;
       msg.textContent="Guardando…";
       const {data:row,error}=await sb.from("user_books").insert({title,author,pages:book.pages.length}).select("id").single();
       if(error)throw new Error(/row-level|policy/i.test(error.message)?"Llegaste al límite de libros de tu plan.":error.message);
@@ -2675,13 +2694,21 @@ document.getElementById("admPdf").addEventListener("change",async e=>{const f=e.
     msg.textContent="Publicado: "+title;["admTitle","admAuthor","admDescr"].forEach(id=>document.getElementById(id).value="");await loadLib()}
   catch(err){msg.textContent="No se pudo publicar: "+errMsg(err)}});
 const bookFiles={};
+/* Libros sin internet: cada libro que abres queda guardado en el celular (Cache API) */
+const OFFB={key:(k,id)=>"/offline/libro/"+k+"/"+id+".json",list(){try{return JSON.parse(localStorage.getItem("tracker90:offbooks")||"[]")}catch(e){return[]}},
+  add(k,id){const l=OFFB.list();if(!l.includes(k+id)){l.push(k+id);try{localStorage.setItem("tracker90:offbooks",JSON.stringify(l))}catch(e){}}},has(k,id){return OFFB.list().includes(k+id)}};
+async function bookGet(k,id){const ck=OFFB.key(k,id);let c=null;try{c=await caches.open("eagle-libros")}catch(e){}
+  if(!isOffline()){try{const {data,error}=await sb.storage.from(k==="u"?"libros":k==="t"?"tienda":k==="m"?"muestras":"biblioteca").download((k==="u"?user.id+"/":"")+id+".json");if(error)throw error;
+      const txt=await data.text();if(c){try{await c.put(ck,new Response(txt,{headers:{"Content-Type":"application/json"}}));OFFB.add(k,id)}catch(e){}}return JSON.parse(txt)}
+    catch(e){if(!c)throw e;const r=await c.match(ck);if(r)return r.json();throw e}}
+  const r=c&&await c.match(ck);if(r)return r.json();throw new Error("Este libro aún no está guardado en tu celular. Ábrelo una vez con internet.")}
 async function openBook(k,id,btn){
   if(k==="t"&&!ST.loaded)await loadStore();
   if(k==="m"&&!ST.loaded)await loadStore();
   const meta=(k==="u"?BK.mine:k==="t"||k==="m"?ST.books:BK.cat).find(b=>b.id===id);if(!meta)return;
   if(k==="l"&&tier<2&&!BK.admin){showPlans("semillas");return}
   if(btn){btn.disabled=true;btn.textContent="Abriendo…"}
-  try{if(!bookFiles[k+id]){const {data,error}=await sb.storage.from(k==="u"?"libros":k==="t"?"tienda":k==="m"?"muestras":"biblioteca").download((k==="u"?user.id+"/":"")+id+".json");if(error)throw error;bookFiles[k+id]=JSON.parse(await data.text())}
+  try{if(!bookFiles[k+id])bookFiles[k+id]=await bookGet(k,id)
     const book=bookFiles[k+id];BK.cur={key:k+"_"+id,id,title:(k==="m"?"Muestra · ":"")+meta.title,pages:book.pages||[],sample:k==="m",price:meta.price_cents};
     const ap=annPath("book");await loadDoc(ap);watch(ap);BK.page=Math.min(BK.cur.pages.length-1,Math.max(0,+getDoc(ap).last||0));RD.sel.book=null;RD.edit.book=null;RD.search.book=false;
     const sr=boxOf("book").querySelector(".rdsearch");sr.hidden=true;sr.dataset.ready="";sr.innerHTML="";
@@ -2702,7 +2729,7 @@ function renderBookPage(){if(!BK.cur)return;applyRD("book");const pages=BK.cur.p
   if(BK.scrollK){const el=document.querySelector('#bookBody .u[data-k="'+BK.scrollK+'"]');if(el)el.scrollIntoView({block:"center"});BK.scrollK=null}setupInk("book")}
 
 /* ======================= AGENTE CLAUDE (todas las páginas) ======================= */
-const AGENT_SYS=`Eres Claude, el agente de estudio dentro de la app "The Eagle Life" (un lifebook para el crecimiento espiritual). Ayudas a la persona a estudiar la Biblia y sus libros, y a avanzar su plan de 90 días con el método RPM.
+const AGENT_SYS=`Eres Claude, el agente de estudio dentro de la app "The Eagle Life" (un lifebook para el crecimiento espiritual). Si la persona pide imprimir, descargar o un PDF, escribe el contenido completo y bien ordenado con títulos y viñetas, y dile que toque el botón «PDF» que aparece debajo de tu respuesta para guardarlo o imprimirlo; nunca digas que no puedes generar PDF. Ayudas a la persona a estudiar la Biblia y sus libros, y a avanzar su plan de 90 días con el método RPM.
 - Responde en el idioma de la persona, claro y cálido, con párrafos cortos o viñetas; sé breve salvo que pida más detalle.
 - Usa el CONTEXTO que te da la app (pasaje, página del libro, declaración o plan). Cita libro, capítulo y versículo cuando hables de la Biblia.
 - Distingue lo que dice el texto de su interpretación; si hay lecturas distintas entre tradiciones cristianas, menciónalas con respeto.
@@ -2736,7 +2763,7 @@ function fmtN(n){return Number(n||0).toLocaleString("es-PE")}
 function renderAgent(){
   const ctx=agentContext();document.getElementById("agentCtx").textContent="Contexto: "+ctx.label;
   let h=AG.msgs.length?'':'<div class="msg a">Hola. Puedo explicarte el pasaje o la página que estás leyendo, ayudarte con tus notas y con tu plan. Selecciona un versículo o párrafo tocándolo y pregúntame.</div>';
-  AG.msgs.forEach(m=>{h+='<div class="msg '+(m.role==="user"?'u':'a')+'">'+esc(m.content)+'</div>'});
+  AG.msgs.forEach((m,i)=>{h+='<div class="msg '+(m.role==="user"?'u':'a')+'">'+esc(m.content)+(m.role!=="user"&&String(m.content).length>160?'<button class="msgpdf" data-pdfmsg="ag:'+i+'" aria-label="Guardar como PDF o imprimir">'+PDF_IC+'PDF</button>':'')+'</div>'});
   if(AG.busy)h+='<div class="msg a wait">Pensando…</div>';
   agLog.innerHTML=h;agLog.scrollTop=agLog.scrollHeight;
   document.getElementById("agentQuick").innerHTML=ctx.quick.map(q=>'<button data-q="'+esc(q)+'">'+esc(q)+'</button>').join('');
@@ -2836,7 +2863,9 @@ document.getElementById("viewPay").addEventListener("click",async e=>{
 document.getElementById("payModal").addEventListener("click",e=>{if(payBusy)return;if(e.target.id==="payModal"||e.target.closest("#payCancel")){selPlan=null;payMsg("");renderPayModal()}});
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&selPlan&&!payBusy){selPlan=null;renderPayModal()}});
 function loadScript(src){return new Promise((ok,ko)=>{if(document.querySelector('script[src="'+src+'"]')&&(src!==PDFJS||window.pdfjsLib))return ok();const x=document.createElement("script");x.src=src;x.onload=ok;x.onerror=()=>ko(new Error("No se pudo cargar un módulo. Revisa tu conexión."));document.head.appendChild(x)})}
-async function loadPlan(){if(!AUTH||!user)return;try{const {data}=await sb.rpc("plan_info");if(data){tier=+data.tier||0;planExp=data.expires||null;planSub=data.sub||null;planId=data.plan||null}}catch(e){}updateLocks()}
+async function loadPlan(){if(!AUTH||!user)return;const ck="tracker90:plan:"+user.id;
+  try{const {data,error}=await sb.rpc("plan_info");if(error)throw error;if(data){tier=+data.tier||0;planExp=data.expires||null;planSub=data.sub||null;planId=data.plan||null;try{localStorage.setItem(ck,JSON.stringify(data))}catch(e){}}}
+  catch(e){try{const c=JSON.parse(localStorage.getItem(ck)||"null");if(c&&(!c.expires||new Date(c.expires)>new Date())){tier=+c.tier||0;planExp=c.expires||null;planSub=c.sub||null;planId=c.plan||null}}catch(_){}}updateLocks()}
 async function unlocked(newTier){
   payBusy=false;tier=Math.max(tier,+newTier||1);await loadPlan();selPlan=null;renderPayModal();AG.tokens=null;
   const c=getDoc(CHAT_PATH),next=afterPay;afterPay=null;
@@ -4077,6 +4106,91 @@ document.getElementById("viewAdmin").addEventListener("change",async e=>{const t
   if(t.dataset.lrest){const id=+t.dataset.lrest,patch={estado:t.value};if(t.value==="respondido")patch.respondido_at=new Date().toISOString();const {error}=await sb.from("reclamos").update(patch).eq("id",id);if(error){setStatus(error.message);return}Object.assign(LR.rows.find(r=>r.id===id)||{},patch);setStatus("Estado guardado");renderAdmin();return}
   if(t.dataset.lrresp){const id=+t.dataset.lrresp,patch={respuesta:t.value.trim()};const {error}=await sb.from("reclamos").update(patch).eq("id",id);if(error){setStatus(error.message);return}Object.assign(LR.rows.find(r=>r.id===id)||{},patch);setStatus("Respuesta guardada");renderAdmin()}});
 
+/* ======================= v24 · SIN INTERNET, COPIA DE SEGURIDAD, EPUB y PDF ======================= */
+const BIB_N=66;
+async function bibCached(ver){try{const c=await caches.open("eagle-biblia"),ks=await c.keys();return ks.filter(r=>r.url.includes("/biblia/"+ver+"/")).length}catch(e){return 0}}
+const OFFP={busy:{},msg:""};
+async function renderOffPanel(){const el=document.getElementById("offPanel");if(!el)return;const ver=(bib&&BIB_VERS.es.concat(BIB_VERS.en).find(v=>v.id===bib.ver&&v.local))?bib.ver:"rvr1909";
+  const n=await bibCached(ver),mine=BK.mine||[],off=mine.filter(b=>OFFB.has("u",b.id)).length,nm=(BIB_VERS.es.concat(BIB_VERS.en).find(v=>v.id===ver)||{}).n||ver;
+  el.innerHTML='<div class="bibh"><h3>Para usar sin internet</h3><span class="status">'+(isOffline()?'Ahora estás sin internet':'Prepáralo antes de subir a la montaña')+'</span></div>'+
+    '<div class="offrows"><div class="offrow"><span class="ofic">'+(n>=BIB_N?'✓':'')+'</span><div><b>Biblia · '+esc(nm)+'</b><small>'+(n>=BIB_N?'Lista en tu celular (66 libros)':n?'Guardados '+n+' de 66 libros':'Unos 4 MB')+'</small></div>'+(n>=BIB_N?'':'<button class="btnw sm" data-offbib="'+ver+'"'+(isOffline()||OFFP.busy.bib?' disabled':'')+'>'+(OFFP.busy.bib||'Descargar')+'</button>')+'</div>'+
+    '<div class="offrow"><span class="ofic">'+(mine.length&&off>=mine.length?'✓':'')+'</span><div><b>Mis libros</b><small>'+(mine.length?off+' de '+mine.length+' en tu celular':'Aún no subes libros')+'</small></div>'+(mine.length&&off<mine.length?'<button class="btnw sm" data-offbooks'+(isOffline()||OFFP.busy.books?' disabled':'')+'>'+(OFFP.busy.books||'Descargar')+'</button>':'')+'</div>'+
+    '<div class="offrow"><span class="ofic">✓</span><div><b>Tu avance</b><small>Plan, tracker, declaraciones, notas y subrayados se guardan en el celular y se sincronizan al volver la señal.</small></div></div>'+
+    '<div class="offrow"><span class="ofic">↓</span><div><b>Copia de seguridad</b><small>Todo tu contenido en un archivo que puedes guardar en iCloud o Drive.</small></div><span class="row-actions" style="gap:6px"><button class="btng sm" data-bkall'+(isOffline()?' disabled':'')+'>Descargar copia</button><label class="btng sm" style="cursor:pointer">Restaurar<input type="file" data-bkrest accept="application/json,.json" hidden></label></span></div></div>'+
+    '<p class="status" id="offMsg" role="status">'+esc(OFFP.msg)+'</p>'}
+function offProg(k,txt){OFFP.busy[k]=txt;const b=document.querySelector(k==="bib"?"[data-offbib]":"[data-offbooks]");if(b){b.textContent=txt||"Descargar";b.disabled=!!txt}}
+document.getElementById("viewLib").addEventListener("click",async e=>{const t=e.target.closest("button");if(!t)return;const msg=()=>document.getElementById("offMsg");
+  if(t.dataset.offbib&&!OFFP.busy.bib){const ver=t.dataset.offbib;let ok=0;OFFP.msg="";offProg("bib","0/66");
+    const idx=[...Array(BIB_N)].map((_,i)=>i+1);await Promise.all([0,1,2,3].map(async w=>{while(idx.length){const i=idx.shift();try{const r=await fetch(BIB_DATA+ver+"/"+i+".json");if(r.ok){await r.text();ok++}}catch(err){}offProg("bib",ok+"/66")}}));
+    offProg("bib",null);OFFP.msg=ok>=BIB_N?"Biblia lista para usar sin internet.":"Se guardaron "+ok+" de 66 libros. Intenta otra vez con mejor señal.";renderOffPanel();return}
+  if(t.dataset.offbooks!==undefined&&!OFFP.busy.books){let ok=0;const mine=BK.mine||[];OFFP.msg="";for(const b of mine){offProg("books",(ok+1)+"/"+mine.length);try{if(!OFFB.has("u",b.id)){bookFiles["u"+b.id]=await bookGet("u",b.id)}ok++}catch(err){}}
+    offProg("books",null);OFFP.msg=ok+" libro"+(ok===1?"":"s")+" en tu celular.";renderLib();return}
+  if(t.dataset.bkall!==undefined){t.disabled=true;t.textContent="Preparando…";try{await backupAll()}catch(err){msg().textContent="No se pudo: "+errMsg(err)}t.disabled=false;t.textContent="Descargar copia";return}});
+document.getElementById("viewLib").addEventListener("change",async e=>{const t=e.target;if(t.dataset.bkrest===undefined)return;const f=t.files[0];t.value="";if(!f)return;const msg=document.getElementById("offMsg");
+  try{const n=await restoreAll(f);msg.textContent="Restauré "+n+" documentos. Recargando…";setTimeout(()=>location.reload(),1200)}catch(err){msg.textContent=err.message||"Ese archivo no es una copia de The Eagle Life."}});
+async function backupAll(){const out={app:"theaglelife",v:2,at:new Date().toISOString(),user:user?{id:user.id,email:user.email}:null,docs:{},local:{}};
+  if(user&&sb&&!isOffline()){let from=0;for(;;){const {data,error}=await sb.from("app_docs").select("path,data,updated_at").eq("user_id",user.id).order("path").range(from,from+199);if(error)throw error;(data||[]).forEach(r=>out.docs[r.path]=r.data);if(!data||data.length<200)break;from+=200}}
+  try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&(k.startsWith("rpm:")||k.startsWith("tracker90")||(user&&k.startsWith("off:"+user.id+":"))))out.local[k]=localStorage.getItem(k)}}catch(e){}
+  if(user){for(const b of BK.mine||[]){try{const bk=bookFiles["u"+b.id]||await bookGet("u",b.id);out.books=out.books||[];out.books.push({title:b.title,author:b.author,book:bk})}catch(e){}}}
+  const blob=new Blob([JSON.stringify(out)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="the-eagle-life-copia-"+new Date().toISOString().slice(0,10)+".json";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+  setStatus("Copia descargada · "+Object.keys(out.docs).length+" documentos"+(out.books?" y "+out.books.length+" libros":""))}
+async function restoreAll(f){const j=JSON.parse(await f.text());if(j.app!=="theaglelife"&&j.app!=="tracker90")throw new Error("Ese archivo no es una copia de The Eagle Life.");
+  let n=0;if(j.app==="tracker90"){Object.entries(j.data||{}).forEach(([k,v])=>{localStorage.setItem(k,v);n++});return n}
+  if(user&&sb){for(const [path,data] of Object.entries(j.docs||{})){const {error}=await sb.from("app_docs").upsert({user_id:user.id,path,data,updated_at:new Date().toISOString()});if(!error)n++}}
+  else Object.entries(j.local||{}).forEach(([k,v])=>{if(k.startsWith("rpm:")||k.startsWith("tracker90")){localStorage.setItem(k,v);n++}});
+  if(user&&sb&&j.books&&j.books.length){const have=(BK.mine||[]).map(b=>b.title);for(const b of j.books){if(have.includes(b.title))continue;try{const {data:row,error}=await sb.from("user_books").insert({title:b.title,author:b.author||"",pages:(b.book.pages||[]).length}).select("id").single();if(error)break;await sb.storage.from("libros").upload(user.id+"/"+row.id+".json",new Blob([JSON.stringify(b.book)],{type:"application/json"}),{upsert:true,contentType:"application/json"});n++}catch(e){}}}
+  return n}
+/* EPUB → libro de la app (texto con párrafos, ~1 800 caracteres por página) */
+const JSZIP="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js";
+async function epubToBook(file,onProg){if(file.size>80*1024*1024)throw new Error("El EPUB pesa más de 80 MB.");
+  await loadScript(JSZIP);const zip=await window.JSZip.loadAsync(await file.arrayBuffer());const P=new DOMParser();
+  const cont=await zip.file("META-INF/container.xml")?.async("text");if(!cont)throw new Error("Ese archivo no parece un EPUB válido.");
+  const opfPath=P.parseFromString(cont,"application/xml").querySelector("rootfile")?.getAttribute("full-path");const opfTxt=opfPath&&await zip.file(opfPath)?.async("text");if(!opfTxt)throw new Error("No encontré el índice del EPUB.");
+  const opf=P.parseFromString(opfTxt,"application/xml"),base=opfPath.includes("/")?opfPath.replace(/[^/]+$/,""):"";
+  const tx=sel=>{const n=opf.getElementsByTagName(sel)[0];return n?n.textContent.trim():""};
+  const man={};[...opf.getElementsByTagName("item")].forEach(i=>man[i.getAttribute("id")]=i.getAttribute("href"));
+  const spine=[...opf.getElementsByTagName("itemref")].map(r=>man[r.getAttribute("idref")]).filter(Boolean);
+  if((opf.querySelector("encryption")||zip.file("META-INF/encryption.xml"))&&!spine.length)throw new Error("Este libro tiene protección (DRM) y no se puede importar.");
+  const paras=[];let k=0;
+  for(const href of spine){onProg&&onProg(++k,spine.length);const path=decodeURIComponent((base+href).replace(/#.*$/,""));const f=zip.file(path);if(!f)continue;
+    const doc=P.parseFromString(await f.async("text"),"application/xhtml+xml");const body=doc.body||doc.getElementsByTagName("body")[0];if(!body)continue;
+    body.querySelectorAll("script,style,nav").forEach(x=>x.remove());
+    body.querySelectorAll("p,h1,h2,h3,h4,h5,h6,li,blockquote,pre,div").forEach(n=>{if(n.querySelector("p,h1,h2,h3,h4,h5,h6,li,blockquote,div"))return;const t=n.textContent.replace(/\s+/g," ").trim();if(t)paras.push(/^H\d$/i.test(n.tagName)?t.toUpperCase():t)})}
+  if(paras.join("").length<300){const enc=zip.file("META-INF/encryption.xml");throw new Error(enc?"Este libro tiene protección (DRM) y no se puede importar.":"No encontré texto en este EPUB.")}
+  const pages=[];let cur=[],len=0;paras.forEach(t=>{if(len>1800&&cur.length){pages.push(cur);cur=[];len=0}cur.push(t);len+=t.length});if(cur.length)pages.push(cur);
+  return{v:1,title:tx("dc:title")||tx("title"),author:tx("dc:creator")||tx("creator"),pages}}
+/* PDF: imprimir o guardar cualquier texto (respuestas del coach, tu plan) */
+function mdToHtml(t){const e=x=>x.replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));let h="",inL=false;
+  String(t||"").split(/\n/).forEach(l=>{const m=l.match(/^\s*([-*•]|\d+[.)])\s+(.*)/);let x=e(l).replace(/\*\*(.+?)\*\*/g,"<b>$1</b>").replace(/\*(.+?)\*/g,"<i>$1</i>");
+    if(m){if(!inL){h+="<ul>";inL=true}h+="<li>"+e(m[2]).replace(/\*\*(.+?)\*\*/g,"<b>$1</b>")+"</li>";return}if(inL){h+="</ul>";inL=false}
+    const hd=l.match(/^(#{1,4})\s+(.*)/);if(hd){h+="<h"+(hd[1].length+1)+">"+e(hd[2])+"</h"+(hd[1].length+1)+">";return}h+=l.trim()?"<p>"+x+"</p>":""});if(inL)h+="</ul>";return h}
+/* En el iPhone con la app instalada, imprimir no siempre está disponible: se genera un archivo PDF y se comparte o descarga */
+const JSPDF="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
+function isIOSApp(){return(/iP(hone|ad|od)/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1))&&(navigator.standalone||matchMedia("(display-mode: standalone)").matches)}
+async function pdfFile(title,html){await loadScript(JSPDF);const {jsPDF}=window.jspdf,doc=new jsPDF({unit:"pt",format:"a4"}),W=595,M=56,maxW=W-2*M;let y=M;
+  const add=(txt,size,bold,gap,indent)=>{doc.setFont("helvetica",bold?"bold":"normal");doc.setFontSize(size);const ls=doc.splitTextToSize(txt,maxW-(indent||0));ls.forEach(l=>{if(y>842-M){doc.addPage();y=M}doc.text(l,M+(indent||0),y);y+=size*1.4});y+=gap||0};
+  add(title,18,true,2);doc.setTextColor(120);add("The Eagle Life · "+new Date().toLocaleDateString("es-PE",{day:"numeric",month:"long",year:"numeric"}),9,false,12);doc.setTextColor(20);
+  const box=document.createElement("div");box.innerHTML=html;
+  const walk=n=>{[...n.children].forEach(c=>{const tg=c.tagName,t=(c.innerText||c.textContent||"").replace(/[☐☑]/g,m=>m==="☑"?"[x]":"[ ]").trim();
+    if(/^H[1-6]$/.test(tg)){if(t)add(t,13,true,4)}else if(tg==="UL"||tg==="OL"){[...c.children].forEach((li,i)=>{const lt=(li.textContent||"").trim();if(lt)add((tg==="OL"?(i+1)+". ":"- ")+lt,11,false,2,10)});y+=4}
+    else if(tg==="P"||tg==="SPAN"||tg==="LI"){if(t)add(t,11,false,6)}else if(c.children.length)walk(c);else if(t)add(t,11,false,6)})};
+  walk(box);
+  const name=title.replace(/[^\wáéíóúñÁÉÍÓÚÑ -]/g,"").trim().replace(/\s+/g,"-").slice(0,60)+".pdf",blob=doc.output("blob"),file=new File([blob],name,{type:"application/pdf"});
+  if(navigator.canShare&&navigator.canShare({files:[file]})){try{await navigator.share({files:[file],title});return}catch(e){if(e&&e.name==="AbortError")return}}
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove()}
+function printDoc(title,html){if(isIOSApp()){pdfFile(title,html).catch(e=>setStatus("No se pudo crear el PDF: "+errMsg(e)));return}let f=document.getElementById("printFrame");if(f)f.remove();f=document.createElement("iframe");f.id="printFrame";f.setAttribute("aria-hidden","true");f.style.cssText="position:fixed;right:0;bottom:0;width:0;height:0;border:0";document.body.appendChild(f);
+  const d=f.contentDocument;d.open();d.write('<!doctype html><html lang="es"><head><meta charset="utf-8"><title>'+title.replace(/</g,"&lt;")+'</title><style>@page{margin:18mm 16mm}body{font:12pt/1.55 Georgia,"Times New Roman",serif;color:#16181D}h1{font:700 20pt/1.2 -apple-system,Segoe UI,sans-serif;margin:0 0 4px}.meta{font:9pt -apple-system,Segoe UI,sans-serif;color:#666;margin:0 0 18px;border-bottom:1px solid #ddd;padding-bottom:10px}h2,h3,h4,h5{font-family:-apple-system,Segoe UI,sans-serif;margin:16px 0 6px;page-break-after:avoid}p{margin:0 0 8px}ul{margin:0 0 10px 18px;padding:0}li{margin:0 0 4px}table{border-collapse:collapse;width:100%;font-size:10pt}td,th{border:1px solid #ccc;padding:4px 6px;text-align:left}.foot{margin-top:24px;font:8.5pt -apple-system,sans-serif;color:#888}</style></head><body><h1>'+title.replace(/</g,"&lt;")+'</h1><p class="meta">The Eagle Life · '+new Date().toLocaleDateString("es-PE",{day:"numeric",month:"long",year:"numeric"})+'</p>'+html+'<p class="foot">theaglelife.com</p></body></html>');d.close();
+  setTimeout(()=>{try{f.contentWindow.focus();f.contentWindow.print()}catch(e){const w=window.open("","_blank");if(w){w.document.write(d.documentElement.outerHTML);w.document.close();w.print()}}},300)}
+
+window.__eagle={getDoc:p=>getDoc(p),savePlan:p=>savePlan(p),chat:()=>CHAT_PATH};
+const PDF_IC='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6M9 14h6M9 18h6"/></svg>';
+document.addEventListener("click",e=>{const b=e.target.closest("[data-pdfmsg]");if(!b)return;const [w,i]=b.dataset.pdfmsg.split(":"),m=w==="ag"?AG.msgs[+i]:(getDoc(CHAT_PATH).msgs||[])[+i];if(!m)return;
+  const first=String(m.content).split("\n").find(l=>l.trim())||"",ttl=first.replace(/^#+\s*|\*\*/g,"").slice(0,70);printDoc(ttl.length>8&&first.length<90?ttl:"Mi plan · The Eagle Life",mdToHtml(m.content))});
+function planToHtml(){const src=document.getElementById("planBody"),cl=src.cloneNode(true),ins=src.querySelectorAll("input,textarea,select"),cins=cl.querySelectorAll("input,textarea,select");
+  cins.forEach((n,i)=>{const o=ins[i],v=o.type==="checkbox"?(o.checked?"☑":"☐"):o.tagName==="SELECT"?(o.selectedOptions[0]||{}).text||"":o.value;const lab=o.getAttribute("aria-label")||o.placeholder||"";const p=document.createElement(o.tagName==="TEXTAREA"?"p":"span");p.textContent=v||(o.tagName==="TEXTAREA"?"—":"");if(!v&&lab&&o.tagName!=="TEXTAREA")p.textContent="";n.replaceWith(p)});
+  cl.querySelectorAll("button,svg,[hidden],.noprint").forEach(n=>n.remove());return cl.innerHTML}
+document.getElementById("planPdf").addEventListener("click",()=>printDoc("Mi plan · "+(document.getElementById("when").textContent||""),planToHtml()));
+
 /* ======================= TIENDA (tipo Amazon), OPINIONES Y PORTADA ======================= */
 const ST={books:[],mine:[],orders:[],reviews:[],rating:{},breviews:{},loaded:false,view:null,q:"",cat:""};
 const starStr=n=>"★★★★★".slice(0,n)+"☆☆☆☆☆".slice(0,5-n);
@@ -4204,19 +4318,37 @@ document.getElementById("bkUp").addEventListener("change",e=>{const f=e.target.f
 let sb=null, user=null;
 function snapOf(d){return{exists:d!=null,data:()=>d,metadata:{hasPendingWrites:false}}}
 function deepMerge(t,p){Object.keys(p).forEach(k=>{const v=p[k];if(v&&typeof v==="object"&&!Array.isArray(v)){if(!t[k]||typeof t[k]!=="object")t[k]={};deepMerge(t[k],v)}else t[k]=v});return t}
+/* Datos con modo sin internet: cada documento se guarda primero en este dispositivo y luego en la nube.
+   Sin conexión se trabaja con la copia local; al volver internet se sube lo pendiente (gana lo último que escribiste). */
+const OFF={k:(uid,p)=>"off:"+uid+":"+p,get(uid,p){try{return JSON.parse(localStorage.getItem(OFF.k(uid,p))||"null")}catch(e){return null}},
+  set(uid,p,d,dirty){try{localStorage.setItem(OFF.k(uid,p),JSON.stringify({d,at:Date.now(),dirty:!!dirty}));return true}catch(e){return false}},
+  dirty(uid){const out=[];try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.startsWith("off:"+uid+":")){const v=JSON.parse(localStorage.getItem(k)||"null");if(v&&v.dirty)out.push(k.slice(("off:"+uid+":").length))}}}catch(e){}return out}};
+function isOffline(){return navigator.onLine===false}
 function supaDb(uid){
   const cache={},queue={};
-  async function fetchDoc(path){const {data,error}=await sb.from("app_docs").select("data").eq("user_id",uid).eq("path",path).maybeSingle();if(error)throw error;return data?data.data:null}
+  async function fetchDoc(path){const loc=OFF.get(uid,path);
+    if(isOffline())return loc?loc.d:null;
+    try{const {data,error}=await sb.from("app_docs").select("data,updated_at").eq("user_id",uid).eq("path",path).maybeSingle();if(error)throw error;
+      if(loc&&loc.dirty){cache[path]=loc.d;put(path);return loc.d}   // lo hecho sin internet sube y gana
+      const d=data?data.data:null;if(d!=null)OFF.set(uid,path,d,false);return d}
+    catch(e){if(loc)return loc.d;throw e}}
   function put(path){ // serialize writes per document so the last state always wins
-    const run=async()=>{const {error}=await sb.from("app_docs").upsert({user_id:uid,path,data:cache[path],updated_at:new Date().toISOString()});if(error)throw error};
+    OFF.set(uid,path,cache[path],true);
+    const run=async()=>{if(isOffline())throw new Error("offline");const {error}=await sb.from("app_docs").upsert({user_id:uid,path,data:cache[path],updated_at:new Date().toISOString()});if(error)throw error;OFF.set(uid,path,cache[path],false)};
     queue[path]=(queue[path]||Promise.resolve()).catch(()=>{}).then(run);return queue[path]}
-  return{doc(path){return{
+  async function flush(){const ps=OFF.dirty(uid);for(const p of ps){const l=OFF.get(uid,p);if(!l)continue;cache[p]=l.d;try{await put(p)}catch(e){}}
+    if(ps.length)setStatus(isOffline()?"Sin internet: guardado en este celular":"Sincronizado con la nube");return ps.length}
+  window.addEventListener("online",()=>{offBanner();flush()});window.addEventListener("offline",offBanner);setTimeout(flush,2500);
+  return{flush,doc(path){return{
     async get(){const d=await fetchDoc(path);cache[path]=d;return snapOf(d)},
     async set(o){cache[path]=JSON.parse(JSON.stringify(o));return put(path)},
     async update(p){if(cache[path]==null)cache[path]=(await fetchDoc(path))||{};deepMerge(cache[path],JSON.parse(JSON.stringify(p)));return put(path)},
     onSnapshot(next,err){let live=true;fetchDoc(path).then(d=>{cache[path]=d;if(live)next(snapOf(d))}).catch(e=>{if(err)err(e)});return()=>{live=false}}
   }}};
 }
+function offBanner(){let b=document.getElementById("offBar");if(!b){b=document.createElement("div");b.id="offBar";b.setAttribute("role","status");document.body.appendChild(b)}
+  b.textContent=isOffline()?"Sin internet · todo se guarda en este celular y se sincroniza al volver la señal":"";b.hidden=!isOffline()}
+window.addEventListener("load",offBanner);
 const authMsg=t=>{document.getElementById("auMsg").textContent=t||""};
 let auMode="in";
 function setAuMode(m){auMode=m;
@@ -4276,9 +4408,9 @@ async function boot(){
     const go=async session=>{
       if(started&&!GUEST||!session)return;started=true;const wasGuest=GUEST;GUEST=false;user=session.user;
       showAuth(false);setLoginUI();
-      if(wasGuest){Object.keys(unsubs).forEach(k=>delete unsubs[k]);await migrateLocal(user.id);Object.keys(docs).forEach(k=>delete docs[k]);syncActs()}
-      else await migrateLocal(user.id);
-      const {data:prof}=await sb.from("profiles").select("username").eq("id",user.id).maybeSingle();
+      if(wasGuest){Object.keys(unsubs).forEach(k=>delete unsubs[k]);try{await migrateLocal(user.id)}catch(e){}Object.keys(docs).forEach(k=>delete docs[k]);syncActs()}
+      else{try{await migrateLocal(user.id)}catch(e){}}
+      let prof=null;try{const pk="tracker90:prof:"+user.id,r=await sb.from("profiles").select("username").eq("id",user.id).maybeSingle();prof=r.data;if(prof)localStorage.setItem(pk,JSON.stringify(prof));else prof=JSON.parse(localStorage.getItem(pk)||"null")}catch(e){}
       document.getElementById("who").textContent=(prof&&prof.username)||user.email;document.getElementById("account").hidden=false;{const nm=(prof&&prof.username)||user.email||"";document.getElementById("whoAv").textContent=(nm.trim()[0]||"·").toUpperCase();document.getElementById("who").title=user.email||""}
       await loadPlan();
       await admCheck();
@@ -4291,7 +4423,8 @@ async function boot(){
       if(ev==="PASSWORD_RECOVERY"){started=true;showAuth(true);setAuMode("newpass");authMsg("Escribe tu nueva contraseña.");return}
       if(session)go(session);
     });
-    const {data}=await sb.auth.getSession();
+    let {data}=await sb.auth.getSession();
+    if(!data.session&&isOffline()){try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(/^sb-.*-auth-token$/.test(k)){const v=JSON.parse(localStorage.getItem(k)||"null");if(v&&v.user){data={session:{user:v.user,offline:true}};break}}}}catch(e){}}
     if(data.session)go(data.session);
     else if(!started){started=true;GUEST=true;setLoginUI();renderTracker();startData(null);
       watch(ONB_PATH);showPage(onbDone()?(startPage==="welcome"?"home":startPage):"welcome")}
