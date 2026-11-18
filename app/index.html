@@ -4521,7 +4521,7 @@ function setAuMode(m){if(m==="up")m="code";auMode=m;const code=m==="code",sent=c
   document.getElementById("auCodeActs").hidden=!sent;
   document.getElementById("auPassRow").hidden=code||m==="forgot";
   document.getElementById("auEmailRow").hidden=m==="newpass"||sent;
-  document.getElementById("auLead").textContent=sent?"Escribe el código que enviamos a "+auSent+". Si no lo ves, revisa Spam o Promociones.":code?"Escribe tu correo y te enviamos un código de 6 dígitos. Si es tu primera vez, tu cuenta se crea sola.":m==="forgot"?"Te enviaremos un enlace para crear una nueva contraseña.":"Entra con el correo y la contraseña que ya tienes.";
+  document.getElementById("auLead").textContent=sent?(LANG==="en"?"We sent an email to "+auSent+": type the code, or tap the sign-in link in that email. If you don’t see it, check Spam or Promotions.":LANG==="pt"?"Enviamos um e-mail para "+auSent+": digite o código ou toque no link de acesso desse e-mail. Se não o vir, verifique Spam ou Promoções.":"Te enviamos un correo a "+auSent+": escribe el código o toca el enlace para entrar que viene en ese correo. Si no lo ves, revisa Spam o Promociones."):code?"Escribe tu correo y te enviamos un código de 6 dígitos. Si es tu primera vez, tu cuenta se crea sola.":m==="forgot"?"Te enviaremos un enlace para crear una nueva contraseña.":"Entra con el correo y la contraseña que ya tienes.";
   document.getElementById("auSubmit").textContent=sent?"Entrar":code?"Enviarme el código":{in:"Entrar",forgot:"Enviar enlace",newpass:"Guardar contraseña"}[m];
   document.getElementById("auForgot").hidden=m!=="in";
   document.getElementById("auPass").autocomplete=m==="in"?"current-password":"new-password";
