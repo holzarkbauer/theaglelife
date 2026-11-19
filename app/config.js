@@ -18,5 +18,9 @@ window.APP_CONFIG = {
 
   // Entrar con redes: agrega "google" y/o "facebook" cuando el proveedor esté activado en
   // Supabase → Authentication → Sign In / Providers. Ej.: oauth: ["google", "facebook"]
-  oauth: []
+  oauth: [],
+
+  // Video de bienvenida (antes del cuestionario). Pega aquí la dirección de un .mp4 (ej. "fondos/bienvenida.mp4").
+  // Vacío = se muestra un video de montaña con frases que explican la app.
+  welcomeVideo: ""
 };
