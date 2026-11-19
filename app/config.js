@@ -14,5 +14,9 @@ window.APP_CONFIG = {
   mercadoPago: false,
 
   // Enlace a la comunidad (grupo de WhatsApp, Telegram, Skool…). Lo ven los planes Bootcamper o superiores.
-  communityUrl: ""
+  communityUrl: "",
+
+  // Entrar con redes: agrega "google" y/o "facebook" cuando el proveedor esté activado en
+  // Supabase → Authentication → Sign In / Providers. Ej.: oauth: ["google", "facebook"]
+  oauth: []
 };
