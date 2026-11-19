@@ -1,9 +1,9 @@
 // Service worker: instalar la app y usarla sin internet (app, Biblia y libros descargados).
-const V = "eagle-v27";                 // la app (se renueva en cada versión)
+const V = "eagle-v28";                 // la app (se renueva en cada versión)
 const BIBLIA = "eagle-biblia";         // Biblia: se conserva entre versiones
 const LIBROS = "eagle-libros";         // libros guardados para leer sin internet: se conservan
 self.addEventListener("install", e => e.waitUntil(
-  caches.open(V).then(c => c.addAll(["./", "index.html", "config.js", "supabase.js", "manifest.webmanifest"].map(u => new Request(u, { cache: "reload" }))).catch(() => {})).then(() => self.skipWaiting())));
+  caches.open(V).then(c => c.addAll(["./", "index.html", "config.js", "supabase.js", "manifest.webmanifest", "fonts/poppins-400.woff2", "fonts/poppins-500.woff2", "fonts/poppins-600.woff2", "fonts/poppins-700.woff2"].map(u => new Request(u, { cache: "reload" }))).catch(() => {})).then(() => self.skipWaiting())));
 self.addEventListener("activate", e => e.waitUntil(
   caches.keys().then(ks => Promise.all(ks.filter(k => k.startsWith("eagle-v") && k !== V || k.startsWith("semillas")).map(k => caches.delete(k)))).then(() => self.clients.claim())));
 self.addEventListener("fetch", e => {
